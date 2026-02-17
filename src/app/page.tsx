@@ -1,7 +1,9 @@
 "use client";
 import { useState, useEffect, Suspense, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { verifyCertificate } from "../lib/actions";
+
+// Use the @ alias for absolute reliability on Vercel
+import { verifyCertificate } from "@/lib/actions";
 import { Html5QrcodeScanner, Html5Qrcode } from "html5-qrcode";
 
 // --- MD3 Icons ---

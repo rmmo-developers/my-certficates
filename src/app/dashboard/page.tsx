@@ -1,9 +1,12 @@
 "use client";
+
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { createClient } from "../../lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
-import { generateCertificateID } from "../../lib/utils";
+
+// Using the @ alias ensures Vercel finds these regardless of folder depth
+import { createClient } from "@/lib/supabase/client";
+import { generateCertificateID } from "@/lib/utils";
 import { 
   saveCertificate, 
   getCertificates, 
@@ -11,8 +14,8 @@ import {
   updateCertificate,
   saveModernCertificate, 
   getModernCertificates, 
-  getModernCount         
-} from "../../lib/actions";
+  getModernCount          
+} from "@/lib/actions";
 
 // --- MD3 Icons ---
 const SearchIcon = () => (
