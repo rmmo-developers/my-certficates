@@ -32,6 +32,7 @@ function VerifyContent() {
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [isInputErrorModalOpen, setIsInputErrorModalOpen] = useState(false);
   const [viewSummary, setViewSummary] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -72,8 +73,14 @@ function VerifyContent() {
   useEffect(() => {
     let scanner: Html5QrcodeScanner | null = null;
     if (isScannerOpen) {
+      // Browser permissions are triggered immediately when render is called
       scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 }, false);
-      scanner.render((text) => { processDecodedText(text); if (scanner) scanner.clear(); }, () => {});
+      scanner.render((text) => { 
+        processDecodedText(text); 
+        if (scanner) scanner.clear(); 
+      }, (error) => {
+        // Silent error for scanning frames
+      });
     }
     return () => { if (scanner) scanner.clear().catch(() => {}); };
   }, [isScannerOpen]);
@@ -91,6 +98,12 @@ function VerifyContent() {
   };
 
   const autoVerify = async (id: string) => {
+    // Replaced browser alert with Modal UI
+    if (!id || id.trim() === "RMMO-") {
+      setIsInputErrorModalOpen(true);
+      return;
+    }
+
     if (loading) return;
     setLoading(true);
     const res = await verifyCertificate(id.trim());
@@ -136,8 +149,6 @@ function VerifyContent() {
   if (!viewSummary) {
     return (
       <div className="min-h-screen bg-[#F8F9FF] text-slate-900 font-sans flex flex-col">
-
-
         <main className="flex-1 flex flex-col items-center justify-center px-6 pb-24">
           <div className="text-center mb-8">
             <h2 className="text-4xl md:text-5xl font-normal text-slate-900">
@@ -145,21 +156,30 @@ function VerifyContent() {
             </h2>
           </div>
 
-          <div className="w-full max-w-xl">
-            <form onSubmit={(e) => { e.preventDefault(); autoVerify(certId); }} className="relative mb-6">
-              <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-slate-500">
-                <SearchIcon />
+          <div className="w-full max-sm:max-w-xs md:max-w-sm">
+            <form onSubmit={(e) => { e.preventDefault(); autoVerify(certId); }} className="flex flex-col gap-3 mb-8">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-slate-500">
+                  <SearchIcon />
+                </div>
+                <input
+                  required
+                  placeholder="ENTER RECORD ID"
+                  className="w-full pl-14 pr-6 py-4 bg-white border border-slate-200 rounded-full text-md font-medium focus:ring-2 focus:ring-blue-700 outline-none transition-all uppercase shadow-sm text-slate-900"
+                  value={certId} onChange={handleInputChange}
+                />
               </div>
-              <input
-                required
-                placeholder="ENTER RECORD ID"
-                className="w-full pl-14 pr-32 py-5 bg-white border border-slate-200 rounded-full text-lg font-medium focus:ring-2 focus:ring-blue-700 outline-none transition-all uppercase shadow-sm text-slate-900"
-                value={certId} onChange={handleInputChange}
-              />
-              <button type="submit" disabled={loading} className="cursor-pointer absolute right-2 top-2 bottom-2 bg-blue-700 text-white px-8 rounded-full font-bold text-xs uppercase hover:bg-blue-800 transition-all">
-                {loading ? "..." : "Verify"}
+              <button type="submit" disabled={loading} className="cursor-pointer w-full bg-blue-700 text-white py-4 rounded-full font-bold text-xs uppercase hover:bg-blue-800 transition-all shadow-md">
+                Verify Record
               </button>
             </form>
+
+            <div className="relative flex items-center justify-center my-8">
+                <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-200"></div>
+                </div>
+                <span className="relative px-4 bg-[#F8F9FF] text-slate-400 text-[10px] font-bold uppercase tracking-widest">or</span>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <button onClick={() => setIsScannerOpen(true)} className="cursor-pointer py-4 bg-[#EEF1F9] text-slate-700 rounded-[20px] font-medium flex items-center justify-center gap-3 hover:bg-slate-200 transition-all">
@@ -168,7 +188,7 @@ function VerifyContent() {
               </button>
               <button onClick={() => fileInputRef.current?.click()} className="cursor-pointer py-4 bg-[#EEF1F9] text-slate-700 rounded-[20px] font-medium flex items-center justify-center gap-3 hover:bg-slate-200 transition-all">
                 <svg className="w-5 h-5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                Upload Image
+                Upload QR Code
               </button>
             </div>
             <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
@@ -194,12 +214,34 @@ function VerifyContent() {
             </p>
         </footer>
 
+        {/* Global Loading Modal */}
+        {loading && (
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-6 z-[200]">
+            <div className="bg-white rounded-[28px] p-8 max-w-[280px] w-full text-center shadow-xl flex flex-col items-center">
+              <div className="w-12 h-12 border-4 border-slate-100 border-t-blue-700 rounded-full animate-spin mb-4"></div>
+              <h3 className="text-[18px] font-medium text-slate-900">Searching Record</h3>
+              <p className="text-[12px] text-slate-500 mt-2">Please wait while we verify the certificate information.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Modal for empty/invalid input format */}
+        {isInputErrorModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-6 z-[110]">
+            <div className="bg-[#F3F6FC] rounded-[28px] p-8 max-w-[312px] w-full text-center shadow-xl">
+              <h3 className="text-[24px] font-medium text-slate-900 mb-4"></h3>
+              <p className="text-[14px] text-slate-600 mb-6 tracking-wide">Enter a valid Document Number Code.</p>
+              <button onClick={() => setIsInputErrorModalOpen(false)} className="cursor-pointer w-full py-3 bg-blue-100 text-blue-700 rounded-full font-medium text-[14px] hover:bg-blue-200 transition">Close</button>
+            </div>
+          </div>
+        )}
+
         {isErrorModalOpen && (
           <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-6 z-[110]">
             <div className="bg-[#F3F6FC] rounded-[28px] p-8 max-w-[312px] w-full text-center shadow-xl">
-              <h3 className="text-[24px] font-medium text-slate-900 mb-4">Invalid ID</h3>
-              <p className="text-[14px] text-slate-600 mb-6 tracking-wide">This certificate record does not exist or has been removed from our database.</p>
-              <button onClick={() => setIsErrorModalOpen(false)} className="cursor-pointer w-full py-3 bg-blue-100 text-blue-700 rounded-full font-medium text-[14px] hover:bg-blue-200 transition">Dismiss</button>
+              <h3 className="text-[24px] font-medium text-slate-900 mb-4">No Record Found</h3>
+              <p className="text-[14px] text-slate-600 mb-6 tracking-wide">This document either does not exist in our records or has an invalid code.</p>
+              <button onClick={() => setIsErrorModalOpen(false)} className="cursor-pointer w-full py-3 bg-blue-100 text-blue-700 rounded-full font-medium text-[14px] hover:bg-blue-200 transition">Close</button>
             </div>
           </div>
         )}
@@ -215,7 +257,6 @@ function VerifyContent() {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
           Verify Another Document
         </button>
-
       </nav>
 
       <main className="max-w-7xl mx-auto w-full px-4 md:px-8 grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 lg:min-h-0 pb-6">
@@ -276,12 +317,10 @@ function VerifyContent() {
                   <span className="text-[11px] font-bold text-slate-400 uppercase">Issue Date</span>
                   <span className="text-[14px] font-medium text-slate-700">{result.date_issued}</span>
                 </div>
-                {/* Issued By placed above Issue Date */}
                 <div className="flex justify-between items-center">
                   <span className="text-[11px] font-bold text-slate-400 uppercase">Issued By</span>
                   <span className="text-[14px] font-medium text-slate-700">{result.issued_by}</span>
                 </div>
-
               </div>
             </div>
           </div>
