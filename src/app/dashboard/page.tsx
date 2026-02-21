@@ -15,8 +15,9 @@ import {
   saveModernCertificate, 
   getModernCertificates, 
   getModernCount,
-  getRegistrants,           // Added from actions.ts
-  updateRegistrantStatus    // Added from actions.ts
+  getRegistrants,           
+  updateRegistrantStatus,
+  approveRegistrant // <--- ADD THIS LINE
 } from "@/lib/actions";
 
 // --- MD3 Icons ---
