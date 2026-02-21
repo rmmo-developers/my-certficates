@@ -1,31 +1,30 @@
 export function generateCertificateID(
   firstName: string,
   surname: string,
-  dateIssued: string, // Format: YYYY-MM-DD
-  type: string,       // dropdown value from page.tsx
+  yearGraduated: string, // Binago: yearGraduated na ang gagamitin sa halip na dateIssued
+  type: string,       // dropdown value mula sa page.tsx
   serial: number      // e.g., 1, 2, 3...
 ) {
-  const date = new Date(dateIssued);
+  // YY - Kunin ang huling dalawang numero ng graduation year (e.g., "2025" -> "25")
+  // Gumagana ito kahit "2025" o "2025-2026" ang format
+  const yy = yearGraduated.substring(2, 4);
   
-  // YY - Year (e.g., 2026 -> 26)
-  const yy = date.getFullYear().toString().slice(-2);
+  // Gagamitin ang current date para sa MM at DD ng Certificate ID
+  const date = new Date();
   
-  // F - First Letter of First Name
+  // F - Unang letra ng First Name
   const f = firstName.charAt(0).toUpperCase();
   
-  // MM - Month (e.g., 02)
+  // MM - Kasalukuyang Buwan (e.g., 02)
   const mm = (date.getMonth() + 1).toString().padStart(2, '0');
   
-  // S - First Letter of Surname
+  // S - Unang letra ng Surname
   const s = surname.charAt(0).toUpperCase();
   
-  // DD - Day (e.g., 15)
+  // DD - Kasalukuyang Araw (e.g., 15)
   const dd = date.getDate().toString().padStart(2, '0');
   
-  // Determine Type Letter (C, A, or S) based on user request:
-  // 1. Certificate of Completion = C
-  // 2. Awards Certificate = A
-  // 3. Certificate of Appreciation = S
+  // Pag-determina ng Type Letter (C, A, o S):
   let c = "C"; 
   if (type === "Awards Certificate") {
     c = "A";
@@ -38,6 +37,6 @@ export function generateCertificateID(
   // 00 - Serial Number (e.g., 01, 02)
   const serialStr = serial.toString().padStart(2, '0');
 
-  // Put it all together: RMMO-YYFMMSDDC00
+  // Format: RMMO-YYFMMSDDC00
   return `RMMO-${yy}${f}${mm}${s}${dd}${c}${serialStr}`;
 }

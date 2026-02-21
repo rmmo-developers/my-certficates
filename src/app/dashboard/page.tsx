@@ -14,7 +14,9 @@ import {
   updateCertificate,
   saveModernCertificate, 
   getModernCertificates, 
-  getModernCount          
+  getModernCount,
+  getRegistrants,           // Added from actions.ts
+  updateRegistrantStatus    // Added from actions.ts
 } from "@/lib/actions";
 
 // --- MD3 Icons ---
@@ -41,6 +43,12 @@ const DownloadIcon = () => (
 const ChevronDownIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+  </svg>
+);
+
+const UserPlusIcon = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
   </svg>
 );
 
@@ -71,10 +79,17 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [records, setRecords] = useState<any[]>([]);
+  const [registrants, setRegistrants] = useState<any[]>([]); // New state
+  const [activeTab, setActiveTab] = useState<"certificates" | "registrants">("certificates"); // New state
+  const [pendingRegistrantId, setPendingRegistrantId] = useState<number | null>(null); // New state
   const [userRole, setUserRole] = useState<string>("encoder");
   const [isLegacyMode, setIsLegacyMode] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
+  
+  const [isRegistrantModalOpen, setIsRegistrantModalOpen] = useState(false);
+  const [selectedRegistrant, setSelectedRegistrant] = useState<any>(null);  
+  
   
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -93,10 +108,11 @@ export default function DashboardPage() {
   const router = useRouter();
   const supabase = createClient();
 
-  const initialForm = {
+const initialForm = {
     firstName: "",
     middleName: "",
     surname: "",
+    suffix: "", // Idagdag ito
     type: "Certificate of Completion",
     issuedBy: "RMMO Alumni Advisory Council", 
     dateIssued: "",
@@ -147,19 +163,37 @@ export default function DashboardPage() {
     return url;
   };
 
-  const refreshData = async () => {
+const refreshData = async () => {
     setFetching(true);
     try {
-        const [legacyData, modernData] = await Promise.all([
+        const [legacyData, modernData, registrantData] = await Promise.all([
             getCertificates(),
-            getModernCertificates()
+            getModernCertificates(),
+            getRegistrants() 
         ]);
         const legacyWithFlag = legacyData.map((r: any) => ({ ...r, isModern: false }));
         const modernWithFlag = modernData.map((r: any) => ({ ...r, isModern: true }));
+        
+        // DITO NATIN PAGSASAMAHIN ANG DATA
         setRecords([...modernWithFlag, ...legacyWithFlag]);
+        setRegistrants(registrantData); 
     } catch (err) { console.error(err); }
     setFetching(false);
   };
+  
+  const filteredData = useMemo(() => {
+    // Piliin kung anong listahan ang ipapakita
+    const list = activeTab === "certificates" ? records : registrants;
+
+    return list.filter((item: any) => {
+      // ALIGNMENT: Pagsamahin ang data fields para hindi mag-error
+      const name = item.issued_to || `${item.first_name} ${item.surname}`;
+      const id = item.cert_number || "PENDING";
+      
+      const searchStr = `${name} ${id}`.toLowerCase();
+      return searchStr.includes(searchTerm.toLowerCase());
+    });
+  }, [activeTab, records, registrants, searchTerm]);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -172,6 +206,14 @@ export default function DashboardPage() {
     };
     checkUser();
   }, [router, supabase]);
+
+
+const RefreshIcon = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+  </svg>
+);
+
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -202,6 +244,36 @@ export default function DashboardPage() {
     return result;
   }, [records, searchTerm, filterType, filterStatus, sortByYear]);
 
+  // New Memo for Registrants
+  const filteredRegistrants = useMemo(() => {
+    if (!searchTerm) return registrants;
+    const lower = searchTerm.toLowerCase();
+    return registrants.filter(r => 
+      `${r.first_name} ${r.surname}`.toLowerCase().includes(lower) ||
+      r.email?.toLowerCase().includes(lower) ||
+      r.position_assigned?.toLowerCase().includes(lower)
+    );
+  }, [registrants, searchTerm]);
+
+  // Handle Promote Registrant
+const handlePromoteRegistrant = (reg: any) => {
+  // Close the summary modal first
+  setIsRegistrantModalOpen(false); 
+
+  setFormData({
+    ...initialForm,
+    firstName: reg.first_name.toUpperCase(),
+    middleName: reg.middle_name?.toUpperCase() || "",
+    surname: reg.surname.toUpperCase(),
+    suffix: reg.suffix?.toUpperCase() || "",
+    schoolYear: reg.school_year_graduation || "",
+    yearGraduated: reg.school_year_graduation?.split('-')[0] || "",
+  });
+  setPendingRegistrantId(reg.id);
+  setIsLegacyMode(false);
+  setIsModalOpen(true);
+};
+
   const handleEditClick = (rec: any, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setIsPreviewModalOpen(false);
@@ -228,6 +300,7 @@ export default function DashboardPage() {
     setIsModalOpen(false);
     setIsEditing(null);
     setIsLegacyMode(false);
+    setPendingRegistrantId(null); // Reset pending ID
     setFormData(initialForm);
   };
 
@@ -291,7 +364,6 @@ export default function DashboardPage() {
     setCopySuccess(true);
     setTimeout(() => setCopySuccess(false), 2000);
   };
-
 const handleFormSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!formData.googlePhotosLink && !showNoThumbnailConfirm) {
@@ -300,51 +372,57 @@ const handleFormSubmit = async (e?: React.FormEvent) => {
     }
     setLoading(true);
     
-    // Sinisiguro nito na lahat ng text ay magiging UPPERCASE
-    const upperFirstName = formData.firstName.toUpperCase();
-    const upperSurname = formData.surname.toUpperCase();
-    const upperMiddleName = formData.middleName.toUpperCase();
-    const fullName = `${upperFirstName} ${upperMiddleName} ${upperSurname}`.replace(/\s+/g, ' ').trim();
-    const upperManualCert = formData.manualCertNumber.toUpperCase();
+    // Safety check: Gumamit ng (formData.field || "") para hindi mag-error kung undefined ang field
+    const upperFirstName = (formData.firstName || "").toUpperCase();
+    const upperSurname = (formData.surname || "").toUpperCase();
+    const upperMiddleName = (formData.middleName || "").toUpperCase();
+    const upperSuffix = (formData.suffix || "").toUpperCase();
+
+    // Isama ang suffix sa dulo ng pangalan at alisin ang extra spaces
+    const fullName = `${upperFirstName} ${upperMiddleName} ${upperSurname} ${upperSuffix}`.replace(/\s+/g, ' ').trim();
+    const upperManualCert = (formData.manualCertNumber || "").toUpperCase();
 
     try {
         let savedRecord: any;
         if (isEditing) {
             const recordToEdit = records.find(r => r.id === isEditing);
             const finalID = upperManualCert.startsWith("RMMO-") ? upperManualCert : `RMMO-${upperManualCert}`;
+            
             const updated = { 
                 ...formData, 
                 firstName: upperFirstName,
                 middleName: upperMiddleName,
                 surname: upperSurname,
+                suffix: upperSuffix,
                 issuedTo: fullName, 
                 certNumber: finalID 
             };
+
             await updateCertificate(isEditing, updated, recordToEdit?.isModern);
             savedRecord = { ...updated, cert_number: finalID, issued_to: fullName };
         } else {
             if (isLegacyMode) {
-                // Para sa Legacy (Manual input)
                 const finalID = upperManualCert.startsWith("RMMO-") ? upperManualCert : `RMMO-${upperManualCert}`;
+                
                 await saveCertificate({ 
                     ...formData, 
                     firstName: upperFirstName,
                     middleName: upperMiddleName,
                     surname: upperSurname,
+                    suffix: upperSuffix,
                     issuedTo: fullName, 
                     certNumber: finalID 
                 });
                 savedRecord = { ...formData, cert_number: finalID, issued_to: fullName };
             } else {
-                // ETO YUNG CRITICAL NA UPDATE:
-                // Ipinapasa na natin ang 'yearGraduated' at 'type' sa getModernCount
+                // Serial counting logic (consistent across years)
                 const count = await getModernCount(formData.yearGraduated, formData.type);
                 
-                // Gagamitin ang count + 1 para sa serial number
+                // Auto-generate ID gamit ang yearGraduated
                 const finalID = generateCertificateID(
                     upperFirstName, 
                     upperSurname, 
-                    formData.dateIssued, 
+                    formData.yearGraduated, 
                     formData.type, 
                     count + 1
                 );
@@ -354,9 +432,15 @@ const handleFormSubmit = async (e?: React.FormEvent) => {
                     firstName: upperFirstName,
                     middleName: upperMiddleName,
                     surname: upperSurname,
+                    suffix: upperSuffix,
                     issuedTo: fullName, 
                     certNumber: finalID 
                 });
+                
+                if (pendingRegistrantId) {
+                  await updateRegistrantStatus(pendingRegistrantId, 'APPROVED');
+                }
+                
                 savedRecord = { ...formData, cert_number: finalID, issued_to: fullName };
             }
         }
@@ -368,7 +452,7 @@ const handleFormSubmit = async (e?: React.FormEvent) => {
         console.error("Submission error:", err); 
     }
     setLoading(false);
-  };
+};
   return (
     <div className="min-h-screen bg-[#F8F9FF] text-slate-900 font-sans pb-20 selection:bg-blue-100">
       {/* MD3 Top Bar */}
@@ -405,21 +489,56 @@ const handleFormSubmit = async (e?: React.FormEvent) => {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 md:px-8 py-8">
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-          <div>
-            <h2 className="text-4xl font-normal text-slate-900 mb-2">Certificates</h2>
-            <p className="text-slate-500">Manage and verify alumni records</p>
-          </div>
-          {/* Desktop New Record button - Accessible by both Admin and Encoder */}
-          {!fetching && (
-            <button onClick={() => { setIsLegacyMode(false); setIsModalOpen(true); }} className="cursor-pointer hidden md:flex bg-blue-700 text-white pl-4 pr-6 py-3.5 rounded-[16px] text-[15px] font-medium hover:bg-blue-800 active:bg-blue-900 active:scale-95 transition-all items-center gap-2 shadow-md">
-              <PlusIcon /> Enroll Certificate
-            </button>
-          )}
-        </header>
+<header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+  <div>
+    <h2 className="text-4xl font-normal text-slate-900 mb-2">Registry Management</h2>
+    <p className="text-slate-500">Manage certificates and online registrants</p>
+  </div>
+  
+  <div className="flex items-center gap-3">
+    {/* Manual Refresh Button */}
+    <button 
+      onClick={refreshData} 
+      disabled={fetching}
+      className="cursor-pointer flex bg-white text-slate-600 border border-slate-200 px-4 py-3.5 rounded-[16px] text-[15px] font-medium hover:bg-slate-50 active:scale-95 transition-all items-center gap-2 shadow-sm disabled:opacity-50"
+    >
+      <div className={fetching ? "animate-spin" : ""}>
+        <RefreshIcon />
+      </div>
+    </button>
 
-        {/* Floating Action Button for Mobile */}
-        {!fetching && (
+    {/* Enroll Certificate Button */}
+    {!fetching && activeTab === "certificates" && (
+      <button 
+        onClick={() => { setIsLegacyMode(false); setIsModalOpen(true); }} 
+        className="cursor-pointer flex bg-blue-700 text-white pl-4 pr-6 py-3.5 rounded-[16px] text-[15px] font-medium hover:bg-blue-800 active:bg-blue-900 active:scale-95 transition-all items-center gap-2 shadow-md"
+      >
+        <PlusIcon /> Enroll Certificate
+      </button>
+    )}
+  </div>
+</header>
+
+        {/* Tab System */}
+        <div className="flex border-b border-slate-200 mb-8 gap-8 overflow-x-auto no-scrollbar">
+            <button 
+                onClick={() => setActiveTab("certificates")}
+                className={`pb-4 text-[15px] font-bold transition-all cursor-pointer whitespace-nowrap relative ${activeTab === 'certificates' ? 'text-blue-700' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+                Certificate Records ({records.length})
+                {activeTab === 'certificates' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-700 rounded-t-full"></div>}
+            </button>
+            <button 
+                onClick={() => setActiveTab("registrants")}
+                className={`pb-4 text-[15px] font-bold transition-all cursor-pointer whitespace-nowrap relative ${activeTab === 'registrants' ? 'text-blue-700' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+                Pending Records ({registrants.length})
+                {activeTab === 'registrants' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-700 rounded-t-full"></div>}
+            </button>
+        </div>
+
+        {/* Floating Action Button for Mobile - Hidden in Registrants Tab */}
+        {!fetching && activeTab === "certificates" && (
           <button 
             onClick={() => { setIsLegacyMode(false); setIsModalOpen(true); }} 
             className="md:hidden fixed bottom-6 right-6 z-50 w-14 h-14 bg-blue-700 text-white rounded-full shadow-2xl flex items-center justify-center active:bg-blue-800 active:scale-90 transition-all cursor-pointer"
@@ -428,103 +547,158 @@ const handleFormSubmit = async (e?: React.FormEvent) => {
           </button>
         )}
 
-        {/* Filters Section */}
-        <div className="mb-8">
-          {/* Mobile Accordion Toggle */}
-          <button 
-            onClick={() => setIsFilterExpanded(!isFilterExpanded)}
-            className="md:hidden w-full flex items-center justify-between p-4 bg-white border border-slate-200 rounded-2xl mb-2"
-          >
-            <span className="text-[14px] font-bold text-slate-700">Filter & Sort</span>
-            <div className={`transition-transform duration-200 ${isFilterExpanded ? 'rotate-180' : ''}`}><ChevronDownIcon /></div>
-          </button>
+        {/* Filters Section (Only for Certificates) */}
+        {activeTab === "certificates" && (
+            <div className="mb-8">
+              {/* Mobile Accordion Toggle */}
+              <button 
+                onClick={() => setIsFilterExpanded(!isFilterExpanded)}
+                className="md:hidden w-full flex items-center justify-between p-4 bg-white border border-slate-200 rounded-2xl mb-2"
+              >
+                <span className="text-[14px] font-bold text-slate-700">Filter & Sort</span>
+                <div className={`transition-transform duration-200 ${isFilterExpanded ? 'rotate-180' : ''}`}><ChevronDownIcon /></div>
+              </button>
 
-          {/* Desktop Inline (Always Visible) / Mobile Accordion (Toggleable) */}
-          <div className={`${isFilterExpanded ? 'flex' : 'hidden md:flex'} flex-wrap items-center gap-4 animate-in fade-in slide-in-from-top-2 duration-200`}>
-              <div className="flex flex-col w-full md:w-auto">
-                <span className="text-[11px] font-bold text-slate-400 uppercase ml-2 mb-1">Type</span>
-                <select className="w-full px-4 py-2.5 bg-[#EEF1F9] border-none rounded-xl text-[14px] font-medium text-slate-700 outline-none hover:bg-slate-200 active:bg-slate-300 transition-colors cursor-pointer" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
-                    <option>All Types</option>
-                    <option>Certificate of Completion</option>
-					<option>Certificate of Appreciation</option>
-                    <option>Awards Certificate</option>
-                </select>
-              </div>
-              
-              <div className="flex flex-col w-full md:w-auto">
-                <span className="text-[11px] font-bold text-slate-400 uppercase ml-2 mb-1">Status</span>
-                <select className="w-full px-4 py-2.5 bg-[#EEF1F9] border-none rounded-xl text-[14px] font-medium text-slate-700 outline-none hover:bg-slate-200 active:bg-slate-300 transition-colors cursor-pointer" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-                    <option>All Status</option>
-                    <option>VALID</option>
-                    <option>REVOKED</option>
-                    <option>PENDING</option>
-                </select>
-              </div>
+              {/* Desktop Inline (Always Visible) / Mobile Accordion (Toggleable) */}
+              <div className={`${isFilterExpanded ? 'flex' : 'hidden md:flex'} flex-wrap items-center gap-4 animate-in fade-in slide-in-from-top-2 duration-200`}>
+                  <div className="flex flex-col w-full md:w-auto">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase ml-2 mb-1">Type</span>
+                    <select className="w-full px-4 py-2.5 bg-[#EEF1F9] border-none rounded-xl text-[14px] font-medium text-slate-700 outline-none hover:bg-slate-200 active:bg-slate-300 transition-colors cursor-pointer" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+                        <option>All Types</option>
+                        <option>Certificate of Completion</option>
+                        <option>Certificate of Appreciation</option>
+                        <option>Awards Certificate</option>
+                    </select>
+                  </div>
+                  
+                  <div className="flex flex-col w-full md:w-auto">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase ml-2 mb-1">Status</span>
+                    <select className="w-full px-4 py-2.5 bg-[#EEF1F9] border-none rounded-xl text-[14px] font-medium text-slate-700 outline-none hover:bg-slate-200 active:bg-slate-300 transition-colors cursor-pointer" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+                        <option>All Status</option>
+                        <option>VALID</option>
+                        <option>REVOKED</option>
+                        <option>PENDING</option>
+                    </select>
+                  </div>
 
-              <div className="flex flex-col w-full md:w-auto">
-                <span className="text-[11px] font-bold text-slate-400 uppercase ml-2 mb-1">Sort by Year</span>
-                <select className="w-full px-4 py-2.5 bg-[#EEF1F9] border-none rounded-xl text-[14px] font-medium text-slate-700 outline-none hover:bg-slate-200 active:bg-slate-300 transition-colors cursor-pointer" value={sortByYear} onChange={(e) => setSortByYear(e.target.value)}>
-                    <option>Newest First</option>
-                    <option>Oldest First</option>
-                </select>
-              </div>
+                  <div className="flex flex-col w-full md:w-auto">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase ml-2 mb-1">Sort by Year</span>
+                    <select className="w-full px-4 py-2.5 bg-[#EEF1F9] border-none rounded-xl text-[14px] font-medium text-slate-700 outline-none hover:bg-slate-200 active:bg-slate-300 transition-colors cursor-pointer" value={sortByYear} onChange={(e) => setSortByYear(e.target.value)}>
+                        <option>Newest First</option>
+                        <option>Oldest First</option>
+                    </select>
+                  </div>
 
-              <span className="hidden md:block ml-auto text-[14px] font-medium text-slate-500 bg-white px-4 py-2 rounded-full border border-slate-200">{filteredRecords.length} records</span>
-          </div>
-        </div>
+                  <span className="hidden md:block ml-auto text-[14px] font-medium text-slate-500 bg-white px-4 py-2 rounded-full border border-slate-200">{filteredRecords.length} records</span>
+              </div>
+            </div>
+        )}
 
         {fetching ? (
             <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-slate-200 border-t-blue-700 rounded-full animate-spin"></div></div>
         ) : (
           <div className="flex flex-col gap-2">
-              {filteredRecords.map((rec) => (
-                  <div 
-                      key={`${rec.isModern ? 'm' : 'l'}-${rec.id}`}
-                      onClick={() => { setSelectedRecord(rec); setIsPreviewModalOpen(true); }}
-                      className="bg-white rounded-2xl p-4 md:p-5 border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4 hover:shadow-md hover:border-blue-200 active:bg-slate-50 transition-all cursor-pointer group"
-                  >
-                      <div className="flex-1 flex items-start gap-3 overflow-hidden">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                                <p className="text-[16px] md:text-[17px] font-bold text-slate-900 truncate">{rec.issued_to}</p>
-                                <span className={`flex-shrink-0 text-[9px] px-2 py-0.5 rounded-md font-black uppercase ${rec.isModern ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
-                                    {rec.isModern ? 'New' : 'Legacy'}
-                                </span>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
-                                <span className="text-slate-500 font-medium">{rec.type}</span>
-                                <span className="hidden md:inline w-1 h-1 bg-slate-300 rounded-full"></span>
-                                <span className="font-mono text-blue-600 font-bold">{rec.cert_number}</span>
-                                <span className="inline md:hidden text-slate-400 font-bold">• SY {rec.school_year}</span>
-                            </div>
-                          </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between md:justify-end gap-3 md:gap-8 border-t md:border-t-0 border-slate-50 pt-3 md:pt-0">
-                          <div className="hidden md:block text-right">
-                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5">Academic Year</p>
-                              <p className="text-[14px] text-slate-800 font-bold">{rec.school_year}</p>
+              {/* Conditional Rendering based on Tab */}
+              {activeTab === "certificates" ? (
+                  filteredRecords.map((rec) => (
+                      <div 
+                          key={`${rec.isModern ? 'm' : 'l'}-${rec.id}`}
+                          onClick={() => { setSelectedRecord(rec); setIsPreviewModalOpen(true); }}
+                          className="bg-white rounded-2xl p-4 md:p-5 border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4 hover:shadow-md hover:border-blue-200 active:bg-slate-50 transition-all cursor-pointer group"
+                      >
+                          <div className="flex-1 flex items-start gap-3 overflow-hidden">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <p className="text-[16px] md:text-[17px] font-bold text-slate-900 truncate">
+											  {rec.issued_to} {rec.suffix || ""}
+											</p>
+                                    <span className={`flex-shrink-0 text-[9px] px-2 py-0.5 rounded-md font-black uppercase ${rec.isModern ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
+                                        {rec.isModern ? 'New' : 'Legacy'}
+                                    </span>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
+                                    <span className="text-slate-500 font-medium">{rec.type}</span>
+                                    <span className="hidden md:inline w-1 h-1 bg-slate-300 rounded-full"></span>
+                                    <span className="font-mono text-blue-600 font-bold">{rec.cert_number}</span>
+                                    <span className="inline md:hidden text-slate-400 font-bold">• SY {rec.school_year}</span>
+                                </div>
+                              </div>
                           </div>
                           
-                          <div className={`px-3 py-1.5 rounded-full text-[11px] font-black flex items-center gap-2 ${rec.validity === 'VALID' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
-                              <div className={`w-2 h-2 rounded-full animate-pulse ${rec.validity === 'VALID' ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
-                              {rec.validity || 'VALID'}
-                          </div>
+                          <div className="flex items-center justify-between md:justify-end gap-3 md:gap-8 border-t md:border-t-0 border-slate-50 pt-3 md:pt-0">
+                              <div className="hidden md:block text-right">
+                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5">Academic Year</p>
+                                  <p className="text-[14px] text-slate-800 font-bold">{rec.school_year}</p>
+                              </div>
+                              
+                              <div className={`px-3 py-1.5 rounded-full text-[11px] font-black flex items-center gap-2 ${rec.validity === 'VALID' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                                  <div className={`w-2 h-2 rounded-full animate-pulse ${rec.validity === 'VALID' ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
+                                  {rec.validity || 'VALID'}
+                              </div>
 
-                          <div className="flex items-center gap-1">
-                              <button onClick={(e) => { e.stopPropagation(); handleEditClick(rec); }} className="cursor-pointer p-2.5 text-slate-400 hover:text-blue-700 hover:bg-blue-50 active:bg-blue-100 rounded-xl transition-all">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                              </button>
+                              <div className="flex items-center gap-1">
+                                  <button onClick={(e) => { e.stopPropagation(); handleEditClick(rec); }} className="cursor-pointer p-2.5 text-slate-400 hover:text-blue-700 hover:bg-blue-50 active:bg-blue-100 rounded-xl transition-all">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                  </button>
+                              </div>
                           </div>
                       </div>
+                  ))
+              ) : (
+			/* Registrants View */
+            filteredRegistrants.map((reg) => (
+              <div 
+                key={`reg-${reg.id}`}
+                onClick={() => { setSelectedRegistrant(reg); setIsRegistrantModalOpen(true); }}
+                className="bg-white rounded-2xl p-4 md:p-5 border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:shadow-md transition-all border-l-4 border-l-blue-600 cursor-pointer"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-[16px] md:text-[17px] font-bold text-slate-900 truncate">
+                      {reg.first_name} {reg.middle_name ? `${reg.middle_name.charAt(0)}.` : ''} {reg.surname} {reg.suffix || ""}
+                    </p>
+                    <span className="bg-blue-50 text-blue-700 text-[10px] px-2 py-0.5 rounded-md font-bold uppercase">Online Submission</span>
                   </div>
-              ))}
-              {filteredRecords.length === 0 && (
-                  <div className="py-20 text-center bg-white rounded-[28px] border-2 border-dashed border-slate-200 text-slate-500">No matching records found.</div>
-              )}
-          </div>
-        )}
-      </main>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-slate-500">
+                    <span className="font-medium">{reg.email}</span>
+                    <span className="hidden md:inline">•</span>
+                    <span className="font-bold">{reg.position_assigned}</span>
+                    <span className="hidden md:inline">•</span>
+                    <span className="italic font-bold text-blue-600">SY {reg.school_year_graduation}</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between md:justify-end gap-3 md:gap-8 border-t md:border-t-0 border-slate-50 pt-3 md:pt-0">
+                  <div className="hidden md:block text-right">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5">Application Date</p>
+                    <p className="text-[14px] text-slate-800 font-bold">{new Date(reg.created_at).toLocaleDateString()}</p>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        handlePromoteRegistrant(reg); 
+                      }}
+                      className="cursor-pointer w-full md:w-auto px-5 py-2.5 bg-blue-600 text-white text-[13px] font-bold rounded-xl hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center gap-2"
+                    >
+                      <UserPlusIcon /> Add to Records
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+
+          {((activeTab === "certificates" && filteredRecords.length === 0) || 
+            (activeTab === "registrants" && filteredRegistrants.length === 0)) && (
+              <div className="py-20 text-center bg-white rounded-[28px] border-2 border-dashed border-slate-200 text-slate-500">
+                No matching records found.
+              </div>
+          )}
+        </div>
+      )}
+    </main>
 
       {/* Center Preview Modal (Desktop) / Fullscreen (Mobile) */}
       {isPreviewModalOpen && selectedRecord && (
@@ -578,12 +752,83 @@ const handleFormSubmit = async (e?: React.FormEvent) => {
             <img src={getImageUrl(selectedRecord.google_photos_link)} className="max-w-full max-h-full object-contain" alt="Full View" />
         </div>
       )}
+	  {/* Registrant Summary Modal */}
+      {isRegistrantModalOpen && selectedRegistrant && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsRegistrantModalOpen(false)}></div>
+          <div className="relative w-full max-w-lg bg-white rounded-[28px] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-slate-100 bg-[#F3F6FC] flex justify-between items-center">
+              <h3 className="text-xl font-medium">Registrant Summary</h3>
+              <button onClick={() => setIsRegistrantModalOpen(false)} className="w-10 h-10 flex items-center justify-center hover:bg-slate-200 cursor-pointer rounded-full">✕</button>
+            </div>
+            
+            <div className="p-8 space-y-5 overflow-y-auto max-h-[70vh]">
+              {/* A. FULL NAME */}
+              <div className="group relative">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Full Name</label>
+                <p className="text-[16px] font-bold select-all bg-slate-50 p-3 rounded-xl border border-transparent hover:border-blue-200 uppercase">
+                  {selectedRegistrant.first_name} {selectedRegistrant.middle_name ? `${selectedRegistrant.middle_name.charAt(0)}.` : ''} {selectedRegistrant.surname} {selectedRegistrant.suffix || ""}
+                </p>
+              </div>
 
-      {/* MD3 Form Modal - Fullscreen on Mobile */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* B. PRONOUNS */}
+                <div className="group relative">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Pronouns / Gender</label>
+                  <p className="text-[15px] font-semibold select-all bg-slate-50 p-3 rounded-xl border border-transparent hover:border-blue-200">
+                    {selectedRegistrant.gender || "Not Specified"}
+                  </p>
+                </div>
+                {/* D. SCHOOL YEAR */}
+                <div className="group relative">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">School Year</label>
+                  <p className="text-[15px] font-semibold select-all bg-slate-50 p-3 rounded-xl border border-transparent hover:border-blue-200">
+                    {selectedRegistrant.school_year_graduation}
+                  </p>
+                </div>
+              </div>
+
+              {/* C. POSITION */}
+              <div className="group relative">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Position / Designation</label>
+                <p className="text-[15px] font-semibold select-all bg-slate-50 p-3 rounded-xl border border-transparent hover:border-blue-200">
+                  {selectedRegistrant.position_assigned}
+                </p>
+              </div>
+
+              {/* E. EMAIL */}
+              <div className="group relative">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Email Address</label>
+                <p className="text-[15px] font-semibold text-blue-600 select-all bg-blue-50/30 p-3 rounded-xl border border-transparent hover:border-blue-200">
+                  {selectedRegistrant.email}
+                </p>
+              </div>
+
+              <div className="pt-2">
+                <h4 className="text-[11px] font-black text-blue-600 uppercase tracking-[0.2em] mb-3">Academic Records</h4>
+                <div className="bg-slate-50 rounded-2xl p-4 space-y-4 border border-slate-100">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[9px] font-black text-slate-400 uppercase">Grade & Section</label>
+                      <p className="text-[14px] font-bold text-slate-700">{selectedRegistrant.grade_section || "N/A"}</p>
+                    </div>
+                    <div>
+                      <label className="text-[9px] font-black text-slate-400 uppercase">Academic Strand</label>
+                      <p className="text-[14px] font-bold text-slate-700">{selectedRegistrant.strand || "N/A"}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+	  
+{/* MD3 Form Modal - Fullscreen on Mobile */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center md:p-4">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm hidden md:block" onClick={closeModal}></div>
-          <div className="relative w-full h-full md:h-auto md:max-w-4xl bg-[#F8F9FF] md:bg-white md:rounded-[28px] shadow-2xl overflow-y-auto animate-in md:zoom-in-95 slide-in-from-bottom duration-300 flex flex-col">
+          <div className="relative w-full h-full md:h-auto md:max-w-5xl bg-[#F8F9FF] md:bg-white md:rounded-[28px] shadow-2xl overflow-y-auto animate-in md:zoom-in-95 slide-in-from-bottom duration-300 flex flex-col">
             <div className="px-6 py-6 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white/80 backdrop-blur-md z-10">
                 <h3 className="text-2xl font-normal text-slate-900">{isEditing ? "Edit" : "Add"} Entry</h3>
                 <button onClick={closeModal} className="cursor-pointer w-10 h-10 flex items-center justify-center hover:bg-slate-100 active:bg-slate-200 rounded-full transition-colors">✕</button>
@@ -598,82 +843,93 @@ const handleFormSubmit = async (e?: React.FormEvent) => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-                      <div className="md:col-span-8 space-y-8">
-                          <div>
-                              <label className="text-[12px] font-bold text-blue-700 uppercase tracking-widest block mb-4">Legal Name</label>
-                              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                                  <div className="md:col-span-5">
+                        <div className="md:col-span-8 space-y-8">
+                            {/* LEGAL NAME SECTION */}
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                <div className="md:col-span-4">
                                     <span className="text-[11px] text-slate-400 ml-1">Surname</span>
                                     <input required className="uppercase w-full p-4 bg-[#EEF1F9] rounded-xl text-[16px] outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all" value={formData.surname} onChange={e => setFormData({...formData, surname: e.target.value.toUpperCase()})} />
-                                  </div>
-                                  <div className="md:col-span-5">
+                                </div>
+                                <div className="md:col-span-4">
                                     <span className="text-[11px] text-slate-400 ml-1">First Name</span>
                                     <input required className="uppercase w-full p-4 bg-[#EEF1F9] rounded-xl text-[16px] outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all" value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value.toUpperCase()})} />
-                                  </div>
-                                  <div className="md:col-span-2">
+                                </div>
+                                <div className="md:col-span-2">
                                     <span className="text-[11px] text-slate-400 ml-1">M.I.</span>
                                     <input maxLength={2} className="uppercase w-full p-4 bg-[#EEF1F9] rounded-xl text-[16px] outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all" value={formData.middleName} onChange={e => setFormData({...formData, middleName: e.target.value.toUpperCase()})} />
-                                  </div>
-                              </div>
-                          </div>
+                                </div>
+                                <div className="md:col-span-2">
+                                    <span className="text-[11px] text-slate-400 ml-1">Suffix</span>
+                                    <select className="w-full p-4 bg-[#EEF1F9] rounded-xl text-[16px] outline-none cursor-pointer hover:bg-slate-200 transition-all" value={formData.suffix} onChange={e => setFormData({...formData, suffix: e.target.value.toUpperCase()})}>
+                                        <option value="">N/A</option>
+                                        <option value="JR">JR</option>
+                                        <option value="SR">SR</option>
+                                        <option value="II">II</option>
+                                        <option value="III">III</option>
+                                        <option value="IV">IV</option>
+                                    </select>
+                                </div>
+                            </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-								<div>
-									<label className="text-[12px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Category</label>
-									<select 
-										disabled={isEditing !== null} 
-										className={`w-full p-4 bg-[#EEF1F9] rounded-xl text-[16px] outline-none transition-all ${
-											isEditing !== null 
-											? 'opacity-60 cursor-not-allowed' 
-											: 'cursor-pointer hover:bg-slate-200 active:bg-slate-300'
-										}`}
-										value={formData.type} 
-										onChange={e => setFormData({...formData, type: e.target.value})}
-									>
-										<option>Certificate of Completion</option>
-										<option>Certificate of Appreciation</option>
-										<option>Awards Certificate</option>
-									</select>
-								</div>
-                              <div>
-                                  <label className="text-[12px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Validation Status</label>
-                                  <select className="w-full p-4 bg-[#EEF1F9] rounded-xl text-[16px] outline-none cursor-pointer hover:bg-slate-200 active:bg-slate-300 transition-all" value={formData.validity} onChange={e => setFormData({...formData, validity: e.target.value})}>
-                                      <option value="VALID">VALID</option><option value="REVOKED">REVOKED</option><option value="PENDING">PENDING</option>
-                                  </select>
-                              </div>
-                          </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="text-[12px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Category</label>
+                                    <select 
+                                        disabled={isEditing !== null} 
+                                        className={`w-full p-4 bg-[#EEF1F9] rounded-xl text-[16px] outline-none transition-all ${isEditing !== null ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-200 active:bg-slate-300'}`}
+                                        value={formData.type} 
+                                        onChange={e => setFormData({...formData, type: e.target.value})}
+                                    >
+                                        <option>Certificate of Completion</option>
+                                        <option>Certificate of Appreciation</option>
+                                        <option>Awards Certificate</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-[12px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Validation Status</label>
+                                    <select className="w-full p-4 bg-[#EEF1F9] rounded-xl text-[16px] outline-none cursor-pointer hover:bg-slate-200 active:bg-slate-300 transition-all" value={formData.validity} onChange={e => setFormData({...formData, validity: e.target.value})}>
+                                        <option value="VALID">VALID</option>
+                                        <option value="REVOKED">REVOKED</option>
+                                        <option value="PENDING">PENDING</option>
+                                    </select>
+                                </div>
+                            </div>
 
-                          {isLegacyMode && (
-                              <div className="p-6 bg-orange-50 border border-orange-100 rounded-2xl">
-                                  <label className="text-[11px] font-bold text-orange-700 uppercase tracking-widest block mb-2">Manual Serial Number</label>
-                                  <input required placeholder="e.g. RMMO-001" className="uppercase w-full p-4 bg-white border border-orange-200 rounded-xl font-mono text-[16px] outline-none focus:ring-2 focus:ring-orange-500" value={formData.manualCertNumber} onChange={e => setFormData({...formData, manualCertNumber: e.target.value.toUpperCase()})} />
-                              </div>
-                          )}
+                            {isLegacyMode && (
+                                <div className="p-6 bg-orange-50 border border-orange-100 rounded-2xl">
+                                    <label className="text-[11px] font-bold text-orange-700 uppercase tracking-widest block mb-2">Manual Serial Number</label>
+                                    <input required placeholder="e.g. RMMO-001" className="uppercase w-full p-4 bg-white border border-orange-200 rounded-xl font-mono text-[16px] outline-none focus:ring-2 focus:ring-orange-500" value={formData.manualCertNumber} onChange={e => setFormData({...formData, manualCertNumber: e.target.value.toUpperCase()})} />
+                                </div>
+                            )}
 
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                              <div><label className="text-[11px] font-bold text-slate-400 uppercase block mb-2">Issue Date</label><input type="date" required className="w-full p-4 bg-[#EEF1F9] rounded-xl text-[16px] hover:bg-slate-200 active:bg-slate-300 transition-all" value={formData.dateIssued} onChange={e => setFormData({...formData, dateIssued: e.target.value})} /></div>
-                              <div><label className="text-[11px] font-bold text-slate-400 uppercase block mb-2">SY</label><input placeholder="24-25" className="w-full p-4 bg-[#EEF1F9] rounded-xl text-[16px] hover:bg-slate-200 focus:bg-white active:bg-slate-300 transition-all" value={formData.schoolYear} onChange={e => setFormData({...formData, schoolYear: e.target.value})} /></div>
-                              <div><label className="text-[11px] font-bold text-slate-400 uppercase block mb-2">Batch Year</label><input placeholder="2025" className="w-full p-4 bg-[#EEF1F9] rounded-xl text-[16px] hover:bg-slate-200 focus:bg-white active:bg-slate-300 transition-all" value={formData.yearGraduated} onChange={e => setFormData({...formData, yearGraduated: e.target.value})} /></div>
-                          </div>
-                      </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div><label className="text-[11px] font-bold text-slate-400 uppercase block mb-2">Issue Date</label><input type="date" required className="w-full p-4 bg-[#EEF1F9] rounded-xl text-[16px] hover:bg-slate-200 active:bg-slate-300 transition-all" value={formData.dateIssued} onChange={e => setFormData({...formData, dateIssued: e.target.value})} /></div>
+                                <div>
+                                    <label className="text-[11px] font-bold text-slate-400 uppercase block mb-2">SY</label>
+                                    <input required placeholder="e.g., 2025-2026" className="w-full p-4 bg-[#EEF1F9] rounded-xl text-[16px] hover:bg-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-600 transition-all outline-none" value={formData.schoolYear} onChange={e => setFormData({...formData, schoolYear: e.target.value})} />
+                                </div>
+                                <div><label className="text-[11px] font-bold text-slate-400 uppercase block mb-2">Batch Year</label><input placeholder="2025" className="w-full p-4 bg-[#EEF1F9] rounded-xl text-[16px] hover:bg-slate-200 focus:bg-white active:bg-slate-300 transition-all" value={formData.yearGraduated} onChange={e => setFormData({...formData, yearGraduated: e.target.value})} /></div>
+                            </div>
+                        </div>
 
-                      <div className="md:col-span-4 space-y-4">
-                          <label className="text-[12px] font-bold text-slate-400 uppercase tracking-widest block">Document Preview</label>
-                          <div 
-                            onClick={() => formData.googlePhotosLink && setIsFullscreen(true)}
-                            className={`aspect-[3/4] bg-[#EEF1F9] border-2 border-dashed border-slate-300 rounded-[24px] overflow-hidden flex items-center justify-center transition-all group relative ${formData.googlePhotosLink ? 'cursor-pointer active:scale-[0.98]' : ''}`}
-                          >
-                               {formData.googlePhotosLink ? (
-                                 <>
-                                    <img src={getImageUrl(formData.googlePhotosLink)} className="w-full h-full object-cover" alt="Thumb" />
-                                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                        <ZoomIcon />
-                                    </div>
-                                 </>
-                               ) : <div className="text-center p-6"><p className="text-[13px] text-slate-400 font-medium italic">No Image Attached</p></div>}
-                          </div>
-                          <input placeholder="Paste Google Photos Link" className="w-full p-4 bg-[#EEF1F9] rounded-xl text-[13px] font-mono focus:bg-white active:bg-slate-200 transition-all outline-none" value={formData.googlePhotosLink} onChange={e => setFormData({...formData, googlePhotosLink: e.target.value})} />
-                      </div>
+                        {/* PREVIEW SECTION */}
+                        <div className="md:col-span-4 space-y-4">
+                            <label className="text-[12px] font-bold text-slate-400 uppercase tracking-widest block">Document Preview</label>
+                            <div 
+                                onClick={() => formData.googlePhotosLink && setIsFullscreen(true)}
+                                className={`aspect-[3/4] bg-[#EEF1F9] border-2 border-dashed border-slate-300 rounded-[24px] overflow-hidden flex items-center justify-center transition-all group relative ${formData.googlePhotosLink ? 'cursor-pointer active:scale-[0.98]' : ''}`}
+                            >
+                                {formData.googlePhotosLink ? (
+                                    <>
+                                        <img src={getImageUrl(formData.googlePhotosLink)} className="w-full h-full object-cover" alt="Thumb" />
+                                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <ZoomIcon />
+                                        </div>
+                                    </>
+                                ) : <div className="text-center p-6"><p className="text-[13px] text-slate-400 font-medium italic">No Image Attached</p></div>}
+                            </div>
+                            <input placeholder="Paste Google Photos Link" className="w-full p-4 bg-[#EEF1F9] rounded-xl text-[13px] font-mono focus:bg-white active:bg-slate-200 transition-all outline-none" value={formData.googlePhotosLink} onChange={e => setFormData({...formData, googlePhotosLink: e.target.value})} />
+                        </div>
                     </div>
                 </form>
             </div>

@@ -50,14 +50,16 @@ export async function getCertificates() {
 // --- MODERN TABLE ACTIONS (certificates_modern table) ---
 
 /**
- * Counts records based on the specific year and type.
- * This ensures the serial restarts for every release year and category.
+ * Inupdate: Binibilang na lang ang total base sa TYPE (S, C, or A)
+ * para maging tuloy-tuloy ang serial number kahit anong taon pa sila.
  */
 export async function getModernCount(year: string, type: string) {
   try {
     const result = await turso.execute({
-      sql: "SELECT COUNT(*) as total FROM certificates_modern WHERE year_graduated = ? AND type = ?",
-      args: [year, type],
+      // BURAHIN: "year_graduated = ? AND"
+      sql: "SELECT COUNT(*) as total FROM certificates_modern WHERE type = ?",
+      // BURAHIN din ang "year" sa loob ng args
+      args: [type], 
     });
     return Number(result.rows[0].total) || 0;
   } catch (e) {
@@ -168,13 +170,11 @@ export async function deleteCertificate(id: number, isModern: boolean = false) {
 
 /**
  * Searches BOTH tables for a certificate.
- * Used for the public verification page to check old and new records.
  */
 export async function verifyCertificate(certNumber: string) {
   try {
     const cleanSearch = certNumber.trim().toUpperCase();
 
-    // 1. Check Modern Table First (High priority for new records)
     const modernResult = await turso.execute({
       sql: "SELECT * FROM certificates_modern WHERE UPPER(cert_number) = ?",
       args: [cleanSearch],
@@ -188,7 +188,6 @@ export async function verifyCertificate(certNumber: string) {
       };
     }
 
-    // 2. Check Legacy Table Second
     const legacyResult = await turso.execute({
       sql: "SELECT * FROM certificates WHERE UPPER(cert_number) = ?",
       args: [cleanSearch],
@@ -206,5 +205,119 @@ export async function verifyCertificate(certNumber: string) {
   } catch (e) {
     console.error("Verification error:", e);
     return { success: false, message: "An error occurred during verification." };
+  }
+}
+
+// ==========================================
+// REGISTRANTS ACTIONS (Online Registration)
+// ==========================================
+
+/**
+ * Saves a new registrant from the public registration form.
+ * Status is set to 'PENDING' so it stays in the waitlist.
+ */
+export async function saveRegistrant(data: any) {
+  try {
+    await turso.execute({
+      sql: `INSERT INTO registrants (
+        surname, first_name, middle_name, suffix, gender, birthday, grade_level_section, 
+        strand, school_year_graduation, email, date_started, date_ended, position_assigned, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        data.surname.toUpperCase(),
+        data.firstName.toUpperCase(),
+        data.middleName.toUpperCase(),
+        data.suffix ? data.suffix.toUpperCase() : "",
+        data.gender,
+        data.birthday,
+        data.gradeLevelSection,
+        data.strand,
+        data.schoolYearGraduation,
+        data.email,
+        data.dateStarted,
+        data.dateEnded,
+        data.positionAssigned.toUpperCase(),
+        "PENDING" // Explicitly adding PENDING so it works with getRegistrants
+      ],
+    });
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (e: any) {
+    console.error("Registration error:", e);
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Fetches all pending registrants for the dashboard.
+ */
+export async function getRegistrants() {
+  try {
+    const result = await turso.execute("SELECT * FROM registrants WHERE status = 'PENDING' ORDER BY id DESC");
+    return JSON.parse(JSON.stringify(result.rows));
+  } catch (e) {
+    console.error("Fetch Pending Error:", e);
+    return [];
+  }
+}
+
+/**
+ * Updates registrant status (e.g., APPROVED, REJECTED)
+ */
+export async function updateRegistrantStatus(id: number, status: string) {
+  try {
+    await turso.execute({
+      sql: "UPDATE registrants SET status = ? WHERE id = ?",
+      args: [status, id],
+    });
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (e) {
+    return { success: false };
+  }
+}
+
+/**
+ * APPROVE/PROMOTE: Moves registrant data to certificate tables.
+ */
+export async function approveRegistrant(registrant: any, certData: any) {
+  try {
+    // 1. CONCATENATE THE NAME: "FIRST MI. SURNAME SUFFIX"
+    const fullName = `${registrant.first_name} ${registrant.middle_name} ${registrant.surname} ${registrant.suffix || ""}`
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toUpperCase();
+
+    // 2. Automate table selection
+    const isModernYear = registrant.school_year_graduation.includes("2025") || 
+                         registrant.school_year_graduation.includes("2026");
+    
+    const targetTable = isModernYear ? "certificates_modern" : "certificates";
+
+    // 3. Insert into selected certificate table
+    await turso.execute({
+      sql: `INSERT INTO ${targetTable} (cert_number, issued_to, type, issued_by, date_issued, school_year) 
+            VALUES (?, ?, ?, ?, ?, ?)`,
+      args: [
+        certData.certNumber.toUpperCase(),
+        fullName,
+        certData.type,
+        certData.issuedBy,
+        certData.dateIssued,
+        registrant.school_year_graduation
+      ],
+    });
+
+    // 4. Update status to 'APPROVED' so they disappear from Pending list
+    await turso.execute({
+      sql: "UPDATE registrants SET status = 'APPROVED' WHERE id = ?",
+      args: [registrant.id]
+    });
+
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (e: any) {
+    console.error("Approval error:", e);
+    return { success: false, error: e.message };
   }
 }
