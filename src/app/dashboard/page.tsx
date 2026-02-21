@@ -275,24 +275,29 @@ const handlePromoteRegistrant = (reg: any) => {
   setIsModalOpen(true);
 };
 
-  const handleEditClick = (rec: any, e?: React.MouseEvent) => {
+const handleEditClick = (rec: any, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setIsPreviewModalOpen(false);
     setIsEditing(rec.id);
+    
+    // Splitting logic for names
     const nameParts = rec.issued_to ? rec.issued_to.split(" ") : [];
+    
     setFormData({
       firstName: (nameParts[0] || "").toUpperCase(),
       middleName: (nameParts.length > 2 ? nameParts[1] : "").toUpperCase(),
       surname: (nameParts.length > 2 ? nameParts.slice(2).join(" ") : nameParts[1] || "").toUpperCase(),
-      type: rec.type,
-      issuedBy: rec.issued_by,
-      dateIssued: rec.date_issued,
-      schoolYear: rec.school_year,
-      yearGraduated: rec.year_graduated,
-      validity: rec.validity || "VALID",
+      suffix: "", // <--- ADDED: This fixes the property 'suffix' is missing error
+      type: rec.type || "S",
+      issuedBy: rec.issued_by || "",
+      dateIssued: rec.date_issued || "",
+      schoolYear: rec.school_year || "",
+      yearGraduated: rec.year_graduated || "",
+      validity: rec.validity || "Permanent",
       googlePhotosLink: rec.google_photos_link || "",
-      manualCertNumber: rec.cert_number,
+      manualCertNumber: rec.cert_number || "",
     });
+    
     setIsLegacyMode(!rec.isModern);
     setIsModalOpen(true);
   };
