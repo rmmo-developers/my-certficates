@@ -50,15 +50,12 @@ export async function getCertificates() {
 // --- MODERN TABLE ACTIONS (certificates_modern table) ---
 
 /**
- * Inupdate: Binibilang na lang ang total base sa TYPE (S, C, or A)
- * para maging tuloy-tuloy ang serial number kahit anong taon pa sila.
+ * Counts total based on TYPE (S, C, or A) to keep serial numbers continuous.
  */
 export async function getModernCount(year: string, type: string) {
   try {
     const result = await turso.execute({
-      // BURAHIN: "year_graduated = ? AND"
       sql: "SELECT COUNT(*) as total FROM certificates_modern WHERE type = ?",
-      // BURAHIN din ang "year" sa loob ng args
       args: [type], 
     });
     return Number(result.rows[0].total) || 0;
@@ -114,8 +111,7 @@ export async function getModernCertificates() {
 // --- GENERAL SHARED ACTIONS ---
 
 /**
- * Updates a certificate record. 
- * The 'isModern' boolean tells the function which table to target.
+ * Updates a certificate record in the target table.
  */
 export async function updateCertificate(id: number, data: any, isModern: boolean = false) {
   try {
@@ -169,7 +165,7 @@ export async function deleteCertificate(id: number, isModern: boolean = false) {
 }
 
 /**
- * Searches BOTH tables for a certificate.
+ * Searches BOTH tables for a certificate verification.
  */
 export async function verifyCertificate(certNumber: string) {
   try {
@@ -213,8 +209,7 @@ export async function verifyCertificate(certNumber: string) {
 // ==========================================
 
 /**
- * Saves a new registrant from the public registration form.
- * Status is set to 'PENDING' so it stays in the waitlist.
+ * Saves a new registrant with status 'PENDING'.
  */
 export async function saveRegistrant(data: any) {
   try {
@@ -237,7 +232,7 @@ export async function saveRegistrant(data: any) {
         data.dateStarted,
         data.dateEnded,
         data.positionAssigned.toUpperCase(),
-        "PENDING" // Explicitly adding PENDING so it works with getRegistrants
+        "PENDING"
       ],
     });
     revalidatePath("/dashboard");
@@ -250,6 +245,7 @@ export async function saveRegistrant(data: any) {
 
 /**
  * Fetches all pending registrants for the dashboard.
+ * Required by page.tsx.
  */
 export async function getRegistrants() {
   try {
@@ -262,7 +258,8 @@ export async function getRegistrants() {
 }
 
 /**
- * Updates registrant status (e.g., APPROVED, REJECTED)
+ * Updates registrant status (e.g., APPROVED, REJECTED).
+ * Required by page.tsx.
  */
 export async function updateRegistrantStatus(id: number, status: string) {
   try {
@@ -273,6 +270,7 @@ export async function updateRegistrantStatus(id: number, status: string) {
     revalidatePath("/dashboard");
     return { success: true };
   } catch (e) {
+    console.error("Update status error:", e);
     return { success: false };
   }
 }
@@ -282,19 +280,16 @@ export async function updateRegistrantStatus(id: number, status: string) {
  */
 export async function approveRegistrant(registrant: any, certData: any) {
   try {
-    // 1. CONCATENATE THE NAME: "FIRST MI. SURNAME SUFFIX"
     const fullName = `${registrant.first_name} ${registrant.middle_name} ${registrant.surname} ${registrant.suffix || ""}`
       .replace(/\s+/g, ' ')
       .trim()
       .toUpperCase();
 
-    // 2. Automate table selection
     const isModernYear = registrant.school_year_graduation.includes("2025") || 
                          registrant.school_year_graduation.includes("2026");
     
     const targetTable = isModernYear ? "certificates_modern" : "certificates";
 
-    // 3. Insert into selected certificate table
     await turso.execute({
       sql: `INSERT INTO ${targetTable} (cert_number, issued_to, type, issued_by, date_issued, school_year) 
             VALUES (?, ?, ?, ?, ?, ?)`,
@@ -308,7 +303,6 @@ export async function approveRegistrant(registrant: any, certData: any) {
       ],
     });
 
-    // 4. Update status to 'APPROVED' so they disappear from Pending list
     await turso.execute({
       sql: "UPDATE registrants SET status = 'APPROVED' WHERE id = ?",
       args: [registrant.id]
