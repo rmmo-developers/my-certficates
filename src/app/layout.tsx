@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     siteName: "ROM Portal by RMMO",
     images: [
       {
-        url: "/og-image.jpg", // This points to public/og-image.png
+        url: "/og-thumbnail.jpg",
         width: 1200,
         height: 630,
         alt: "ROM Portal by RMMO",
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "ROM Portal by RMMO",
     description: "Registration and Verify Documents Easily",
-    images: ["/og-image.jpg"],
+    images: ["/og-thumbnail.jpg"],
   },
 };
 
