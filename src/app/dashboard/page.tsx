@@ -860,17 +860,17 @@ const CopyableField = ({ label, value, colorClass = "text-slate-700" }: {
                 <div className="bg-slate-50 rounded-2xl p-5 space-y-5 border border-slate-100">
                   <CopyableField label="Full Name" value={fullName} />
                   <div className="grid grid-cols-2 gap-4">
-                    <CopyableField label="Gender" value={selectedRegistrant.gender} />
+                    <CopyableField label="Pronouns" value={selectedRegistrant.gender} />
                     <CopyableField label="Birthday" value={selectedRegistrant.birthday} />
                   </div>
                 </div>
               </div>
 
-              {/* ASSIGNMENT DETAILS */}
+              {/* POSITION ROLE / COMMITTEE ASSIGNMENT DETAILS */}
               <div className="space-y-3">
-                <h4 className="text-[11px] font-black text-blue-600 uppercase tracking-[0.2em]">Assignment</h4>
+                <h4 className="text-[11px] font-black text-blue-600 uppercase tracking-[0.2em]">POSITION ROLE / COMMITTEE ASSIGNMENT</h4>
                 <div className="bg-blue-50/30 rounded-2xl p-5 space-y-5 border border-blue-100/50">
-                  <CopyableField label="Position / Designation" value={selectedRegistrant.position_assigned} />
+                  <CopyableField label="Position / Committee Assigned" value={selectedRegistrant.position_assigned} />
                   <CopyableField label="Email Address" value={selectedRegistrant.email} colorClass="text-blue-600" />
                 </div>
               </div>
@@ -887,9 +887,9 @@ const CopyableField = ({ label, value, colorClass = "text-slate-700" }: {
                 </div>
               </div>
 
-              {/* ENGAGEMENT PERIOD */}
+              {/* SERVICE PERIOD */}
               <div className="space-y-3">
-                <h4 className="text-[11px] font-black text-emerald-600 uppercase tracking-[0.2em]">Engagement Period</h4>
+                <h4 className="text-[11px] font-black text-emerald-600 uppercase tracking-[0.2em]">Service Period</h4>
                 <div className="bg-emerald-50/30 rounded-2xl p-5 border border-emerald-100/50">
                   <div className="grid grid-cols-2 gap-4">
                     <CopyableField label="Date Started" value={selectedRegistrant.date_started} />
