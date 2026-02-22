@@ -445,17 +445,18 @@ const handleFormSubmit = async (e?: React.FormEvent) => {
         issuedTo: fullName,
     };
 
-    if (isEditing) {
+if (isEditing) {
         // 1. Identify which table the record belongs to using the existing records state
         const recordToEdit = records.find(r => r.id === isEditing);
         
-        // 2. Determine the correct ID to use (manual ID if legacy, otherwise keep existing)
-        const certNumberToSave = isLegacyMode ? finalManualID : (recordToEdit?.cert_number || baseData.certNumber);
+        // 2. FIXED: Changed baseData.certNumber to baseData.manualCertNumber
+        const certNumberToSave = isLegacyMode 
+            ? finalManualID 
+            : (recordToEdit?.cert_number || baseData.manualCertNumber);
 
         const updatedData = { ...baseData, certNumber: certNumberToSave };
 
-        // 3. CALL UPDATE: This uses "UPDATE...WHERE id=?" in your actions.ts
-        // This modifies the row instead of creating a new one.
+        // 3. CALL UPDATE
         await updateCertificate(isEditing, updatedData, !!recordToEdit?.isModern);
         
         savedRecord = { ...updatedData, cert_number: certNumberToSave, issued_to: fullName };
@@ -786,7 +787,7 @@ const handleFormSubmit = async (e?: React.FormEvent) => {
              </div>
 
              <div className="p-6 bg-slate-50 flex flex-col md:flex-row gap-3">
-                <button onClick={() => { setQrModalRecord(selectedRecord); }} className="cursor-pointer flex-1 py-3.5 bg-white border border-slate-200 text-slate-900 font-medium rounded-xl hover:bg-slate-100 active:bg-slate-200 transition-all">Share / QR Code</button>
+                <button onClick={() => { setQrModalRecord(selectedRecord); }} className="cursor-pointer flex-1 py-3.5 bg-white border border-slate-200 text-slate-900 font-medium rounded-xl hover:bg-slate-100 active:bg-slate-200 transition-all">Share QR Code or Link</button>
                 <button onClick={() => handleEditClick(selectedRecord)} className="cursor-pointer flex-1 py-3.5 bg-blue-700 text-white font-medium rounded-xl hover:bg-blue-800 active:bg-blue-900 active:scale-[0.98] transition-all shadow-md">Edit Record</button>
              </div>
           </div>
@@ -1066,36 +1067,45 @@ const handleFormSubmit = async (e?: React.FormEvent) => {
         </div>
       )}
 
-      {/* QR & Sharing Modal */}
-      {qrModalRecord && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4 z-[110]">
-          <div className="bg-white rounded-[28px] p-8 max-w-[420px] w-full text-center shadow-2xl relative border border-slate-100">
-            <h3 className="text-2xl font-medium mb-1">{qrModalRecord.issued_to}</h3>
-            <p className="text-blue-700 font-mono text-[14px] mb-8 font-semibold uppercase">{qrModalRecord.cert_number}</p>
-            
-            <div className="bg-[#EEF1F9] p-6 rounded-[24px] inline-block mb-8">
-              <QRCodeSVG id="qr-code-svg" value={`${window.location.origin}/?c=${qrModalRecord.cert_number.replace("RMMO-", "")}`} size={180} level="H" includeMargin={true} />
-            </div>
+{/* QR & Sharing Modal */}
+{qrModalRecord && (
+  <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4 z-[110]">
+    <div className="bg-white rounded-[28px] p-8 max-w-[420px] w-full text-center shadow-2xl relative border border-slate-100">
+      
+      {/* SUCCESS MESSAGE BOX */}
+      <div className="mb-6 py-3 px-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-emerald-700 text-[14px] font-bold">
+              {isEditing ? "QR Code and Link Sharing Generated" : "QR Code and Link Sharing Generated"}
+          </span>
+      </div>
 
-            <div className="mb-8 text-left">
-                <label className="text-[11px] font-bold text-slate-400 uppercase ml-2 mb-1 block">Sharing Link</label>
-                <div className="flex gap-2 p-2 bg-slate-50 border border-slate-200 rounded-xl">
-                    <input readOnly className="flex-1 bg-transparent border-none text-[13px] px-2 outline-none text-slate-600" value={`${window.location.origin}/?c=${qrModalRecord.cert_number.replace("RMMO-", "")}`} />
-                    <button onClick={() => copyShareLink(qrModalRecord)} className="cursor-pointer px-4 py-2 bg-white border border-slate-200 rounded-lg text-[12px] font-bold text-blue-700 hover:bg-blue-50 active:bg-blue-100 transition-all">
-                        {copySuccess ? "Copied!" : "Copy"}
-                    </button>
-                </div>
-            </div>
+      <h3 className="text-2xl font-medium mb-1">{qrModalRecord.issued_to}</h3>
+      <p className="text-blue-700 font-mono text-[14px] mb-8 font-semibold uppercase">{qrModalRecord.cert_number}</p>
+      
+      <div className="bg-[#EEF1F9] p-6 rounded-[24px] inline-block mb-8">
+        <QRCodeSVG id="qr-code-svg" value={`${window.location.origin}/?c=${qrModalRecord.cert_number.replace("RMMO-", "")}`} size={180} level="H" includeMargin={true} />
+      </div>
 
-            <div className="flex flex-col gap-2">
-                <button onClick={downloadQRCode} className="cursor-pointer w-full py-4 bg-blue-700 text-white rounded-2xl text-[15px] font-bold hover:bg-blue-800 active:bg-blue-900 active:scale-95 transition-all flex items-center justify-center gap-2">
-                    <DownloadIcon /> Download QR Code
-                </button>
-                <button onClick={() => setQrModalRecord(null)} className="cursor-pointer w-full py-3 text-slate-500 font-medium text-[15px] hover:text-slate-900 active:bg-slate-50 rounded-xl transition-all">Close</button>
-            </div>
+      <div className="mb-8 text-left">
+          <label className="text-[11px] font-bold text-slate-400 uppercase ml-2 mb-1 block">Sharing Link</label>
+          <div className="flex gap-2 p-2 bg-slate-50 border border-slate-200 rounded-xl">
+              <input readOnly className="flex-1 bg-transparent border-none text-[13px] px-2 outline-none text-slate-600" value={`${window.location.origin}/?c=${qrModalRecord.cert_number.replace("RMMO-", "")}`} />
+              <button onClick={() => copyShareLink(qrModalRecord)} className="cursor-pointer px-4 py-2 bg-white border border-slate-200 rounded-lg text-[12px] font-bold text-blue-700 hover:bg-blue-50 active:bg-blue-100 transition-all">
+                  {copySuccess ? "Copied!" : "Copy"}
+              </button>
           </div>
-        </div>
-      )}
+      </div>
+
+      <div className="flex flex-col gap-2">
+          <button onClick={downloadQRCode} className="cursor-pointer w-full py-4 bg-blue-700 text-white rounded-2xl text-[15px] font-bold hover:bg-blue-800 active:bg-blue-900 active:scale-95 transition-all flex items-center justify-center gap-2">
+              <DownloadIcon /> Download QR Code
+          </button>
+          <button onClick={() => setQrModalRecord(null)} className="cursor-pointer w-full py-3 text-slate-500 font-medium text-[15px] hover:text-slate-900 active:bg-slate-50 rounded-xl transition-all">Close</button>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* Delete Password Security Modal */}
       {showDeletePasswordModal && (
