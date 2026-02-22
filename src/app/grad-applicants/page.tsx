@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { saveRegistrant } from "@/lib/actions";
 
 // Dashboard-Style Action Modal
-const ActionModal = ({ isOpen, title, message, onConfirm, onCancel, confirmText = "Confirm" }: any) => {
+const ActionModal = ({ isOpen, title, message, onConfirm, onCancel, confirmText = "Confirm", isLoading }: any) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-[200]">
@@ -13,9 +13,19 @@ const ActionModal = ({ isOpen, title, message, onConfirm, onCancel, confirmText 
         <h3 className="text-[20px] font-bold text-slate-900 mb-3">{title}</h3>
         <p className="text-[13px] font-bold text-slate-600 mb-6 leading-relaxed whitespace-pre-line">{message}</p>
         <div className="flex justify-end gap-3">
-          <button onClick={onCancel} className="cursor-pointer px-4 py-2 text-[13px] font-bold text-slate-500 hover:bg-slate-100 rounded-full transition-colors">Cancel</button>
-          <button onClick={onConfirm} className="cursor-pointer px-5 py-2 text-[13px] font-bold bg-blue-700 text-white rounded-full hover:bg-blue-800 transition-all shadow-md">
-            {confirmText}
+          <button 
+            disabled={isLoading} 
+            onClick={onCancel} 
+            className="cursor-pointer px-4 py-2 text-[13px] font-bold text-slate-500 hover:bg-slate-100 rounded-full transition-colors disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button 
+            disabled={isLoading} 
+            onClick={onConfirm} 
+            className="cursor-pointer px-5 py-2 text-[13px] font-bold bg-blue-700 text-white rounded-full hover:bg-blue-800 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? "Submitting..." : confirmText}
           </button>
         </div>
       </div>
@@ -35,7 +45,7 @@ export default function GradApplicantsPage() {
 
   const [formData, setFormData] = useState({
     surname: "", firstName: "", middleName: "", suffix: "",
-    gender: "His", 
+    gender: "HIM", 
     birthday: "", email: "", gradeLevelSection: "",
     strand: "TVL-ICT", schoolYearGraduation: "",
     dateStarted: "", dateEnded: "", positionAssigned: ""
@@ -184,7 +194,7 @@ export default function GradApplicantsPage() {
                 </p>
               </div>
             </div>
-            <button onClick={nextStep} className="cursor-pointer mt-8 w-full py-4 bg-blue-700 text-white rounded-[20px] font-black text-lg hover:bg-blue-800 transition-all">GET STARTED</button>
+            <button onClick={nextStep} className="cursor-pointer mt-8 w-full py-4 bg-blue-700 text-white rounded-[20px] font-bold text-lg hover:bg-blue-800 transition-all">GET STARTED</button>
           </div>
         )}
 
@@ -241,7 +251,7 @@ export default function GradApplicantsPage() {
               <button 
                 disabled={!privacyAgreed}
                 onClick={nextStep} 
-                className="cursor-pointer w-full py-4 bg-blue-700 text-white rounded-[20px] font-black text-lg hover:bg-blue-800 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                className="cursor-pointer w-full py-4 bg-blue-700 text-white rounded-[20px] font-bold text-lg hover:bg-blue-800 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 NEXT
               </button>
@@ -257,7 +267,7 @@ export default function GradApplicantsPage() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
                   <div className="md:col-span-4">
-                      <label className={labelClass}>First Name{requiredStar}</label>
+                      <label className={labelClass}>Given Name{requiredStar}</label>
                       <input required className={inputClass} value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value.toUpperCase()})} />
                   </div>
                   <div className="md:col-span-2">
@@ -276,13 +286,12 @@ export default function GradApplicantsPage() {
                       value={formData.suffix} 
                       onChange={e => setFormData({...formData, suffix: e.target.value})}
                     >
-                      <option value="">JR/SR/III</option>
+                      <option value=""></option>
                       <option value="JR">JR</option>
-                      <option value="SR">SR</option>
-                      <option value="II">II</option>
                       <option value="III">III</option>
                       <option value="IV">IV</option>
                       <option value="V">V</option>
+					  <option value="SR">SR</option>
                     </select>
                     <div className="flex items-center gap-2 mt-2 ml-1">
                       <input 
@@ -304,15 +313,23 @@ export default function GradApplicantsPage() {
                   <div className="md:col-span-4">
                     <label className={labelClass}>Pronouns{requiredStar}</label>
                     <select required className={`${inputClass} cursor-pointer`} value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})}>
-                      <option value="HIS">HIS</option>
+                      <option value="HIM">HIM</option>
                       <option value="HER">HER</option>
-                      <option value="Preffer not to say">Preffer not to say</option>
+                      <option value="PREFER NOT TO SAY">PREFER NOT TO SAY</option>
                     </select>
                   </div>
 
-                  <div className="md:col-span-4"><label className={labelClass}>Date of Birth{requiredStar}</label>
-                    <input type="date" required className={`${inputClass} cursor-pointer`} value={formData.birthday} onChange={e => setFormData({...formData, birthday: e.target.value})} />
-                  </div>
+					<div className="md:col-span-4">
+					  <label className={labelClass}>Date of Birth{requiredStar}</label>
+					  <input 
+						type="date" 
+						required 
+						className={`${inputClass} cursor-pointer`} 
+						// If formData.birthday is empty, it uses the 2005 default
+						value={formData.birthday || '2005-01-01'} 
+						onChange={e => setFormData({...formData, birthday: e.target.value})} 
+					  />
+					</div>
                   <div className="md:col-span-4"><label className={labelClass}>Email Address{requiredStar}</label>
                     <input type="email" required className={inputClass} value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
                   </div>
@@ -351,7 +368,7 @@ export default function GradApplicantsPage() {
               <h2 className="text-lg font-black text-slate-900 mb-6 flex items-center gap-3"><span className="w-1 h-6 bg-emerald-500 rounded-full"></span>RMMO Service History</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div><label className={labelClass}>Date Service Started{requiredStar}</label><input type="date" required className={`${inputClass} cursor-pointer`} value={formData.dateStarted} onChange={e => setFormData({...formData, dateStarted: e.target.value})} /></div>
-                <div><label className={labelClass}>Date Service End{requiredStar}</label><input type="date" required className={`${inputClass} cursor-pointer`} value={formData.dateEnded} onChange={e => setFormData({...formData, dateEnded: e.target.value})} /></div>
+                <div><label className={labelClass}>Date Service End{requiredStar}</label><input type="date" required className={`${inputClass} cursor-pointer`} value={formData.dateEnded || '2026-03-28'}  onChange={e => setFormData({...formData, dateEnded: e.target.value})} /></div>
                 <div className="md:col-span-2">
                   <label className={labelClass}>Position Title or Role and Committee Held{requiredStar}</label>
                   <input 
@@ -365,7 +382,7 @@ export default function GradApplicantsPage() {
               </div>
             </section>
 
-            <button type="submit" className="cursor-pointer w-full bg-blue-700 text-white py-4 rounded-[20px] font-black text-lg shadow-lg hover:bg-blue-800 transition-all">REVIEW DETAILS</button>
+            <button type="submit" className="cursor-pointer w-full bg-blue-700 text-white py-4 rounded-[20px] font-bold text-lg shadow-lg hover:bg-blue-800 transition-all">REVIEW DETAILS</button>
           </form>
         )}
 
@@ -440,8 +457,8 @@ export default function GradApplicantsPage() {
             </div>
 
             <div className="flex flex-col md:flex-row gap-3">
-              <button onClick={prevStep} className="cursor-pointer flex-1 py-4 bg-white text-slate-500 border border-slate-200 rounded-[20px] font-black text-lg hover:bg-slate-50 transition-all">BACK TO EDIT</button>
-              <button disabled={!isAgreed || loading} onClick={handleOpenConfirm} className="cursor-pointer flex-[2] bg-blue-700 text-white py-4 rounded-[20px] font-black text-lg shadow-lg hover:bg-blue-800 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+              <button onClick={prevStep} className="cursor-pointer flex-1 py-4 bg-white text-slate-500 border border-slate-200 rounded-[20px] font-bold text-lg hover:bg-slate-50 transition-all">BACK TO EDIT</button>
+              <button disabled={!isAgreed || loading} onClick={handleOpenConfirm} className="cursor-pointer flex-[2] bg-blue-700 text-white py-4 rounded-[20px] font-bold text-lg shadow-lg hover:bg-blue-800 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
                 {loading ? "PROCESSING..." : "SUBMIT APPLICATION"}
               </button>
             </div>
@@ -449,14 +466,15 @@ export default function GradApplicantsPage() {
         )}
       </main>
 
-      <ActionModal 
-        isOpen={showConfirmModal}
-        title="Final Certification"
-        message={`Any misinformation provided in this form will result in rejection and disqualification of your application.\n\nWe reserve the right to verify the accuracy of the information provided, and any falsification will lead to immediate dismissal from consideration.\n\nBy submitting this form, you agree to the terms and understand that any misrepresentation may have legal consequences.`}
-        confirmText="I Certify & Submit"
-        onConfirm={handleFinalSubmit}
-        onCancel={() => setShowConfirmModal(false)}
-      />
+		<ActionModal 
+		  isOpen={showConfirmModal}
+		  title="You are about to submit your Application"
+		  message={`Any misinformation provided in this form will result in rejection and disqualification of your application.\n\nWe reserve the right to verify the accuracy of the information provided, and any falsification will lead to immediate dismissal from consideration.\n\nBy submitting this form, you agree to the terms and understand that any misrepresentation may have legal consequences.`}
+		  confirmText="I Certify & Submit"
+		  onConfirm={handleFinalSubmit}
+		  onCancel={() => setShowConfirmModal(false)}
+		  isLoading={loading} // <--- Add this line here
+		/>
     </div>
   );
 }

@@ -50,13 +50,15 @@ export async function getCertificates() {
 // --- MODERN TABLE ACTIONS (certificates_modern table) ---
 
 /**
- * Counts total based on TYPE (S, C, or A) to keep serial numbers continuous.
+ * FIXED: Counts based on BOTH Type and Year Graduated.
+ * This prevents serial numbers from doubling across different batches.
  */
 export async function getModernCount(year: string, type: string) {
   try {
     const result = await turso.execute({
-      sql: "SELECT COUNT(*) as total FROM certificates_modern WHERE type = ?",
-      args: [type], 
+      // Added year_graduated filter to ensure separate counting for 2025, 2026, etc.
+      sql: "SELECT COUNT(*) as total FROM certificates_modern WHERE year_graduated = ? AND type = ?",
+      args: [year, type], 
     });
     return Number(result.rows[0].total) || 0;
   } catch (e) {
@@ -167,9 +169,9 @@ export async function deleteCertificate(id: number, isModern: boolean = false) {
 /**
  * Searches BOTH tables for a certificate verification.
  */
-export async function verifyCertificate(certNumber: string) {
+export async function verifyCertificate(cert_number: string) {
   try {
-    const cleanSearch = certNumber.trim().toUpperCase();
+    const cleanSearch = cert_number.trim().toUpperCase();
 
     const modernResult = await turso.execute({
       sql: "SELECT * FROM certificates_modern WHERE UPPER(cert_number) = ?",
@@ -245,7 +247,6 @@ export async function saveRegistrant(data: any) {
 
 /**
  * Fetches all pending registrants for the dashboard.
- * Required by page.tsx.
  */
 export async function getRegistrants() {
   try {
@@ -259,7 +260,6 @@ export async function getRegistrants() {
 
 /**
  * Updates registrant status (e.g., APPROVED, REJECTED).
- * Required by page.tsx.
  */
 export async function updateRegistrantStatus(id: number, status: string) {
   try {
@@ -277,9 +277,20 @@ export async function updateRegistrantStatus(id: number, status: string) {
 
 /**
  * APPROVE/PROMOTE: Moves registrant data to certificate tables.
+ * Includes a guard to prevent duplicate certificate creation.
  */
 export async function approveRegistrant(registrant: any, certData: any) {
   try {
+    // GUARD: Check if the registrant is already approved to prevent double-entry
+    const checkResult = await turso.execute({
+      sql: "SELECT status FROM registrants WHERE id = ?",
+      args: [registrant.id]
+    });
+
+    if (checkResult.rows[0]?.status === 'APPROVED') {
+      return { success: false, error: "Registrant has already been approved." };
+    }
+
     const fullName = `${registrant.first_name} ${registrant.middle_name} ${registrant.surname} ${registrant.suffix || ""}`
       .replace(/\s+/g, ' ')
       .trim()
@@ -290,6 +301,7 @@ export async function approveRegistrant(registrant: any, certData: any) {
     
     const targetTable = isModernYear ? "certificates_modern" : "certificates";
 
+    // 1. Insert into certificate table
     await turso.execute({
       sql: `INSERT INTO ${targetTable} (cert_number, issued_to, type, issued_by, date_issued, school_year) 
             VALUES (?, ?, ?, ?, ?, ?)`,
@@ -303,6 +315,7 @@ export async function approveRegistrant(registrant: any, certData: any) {
       ],
     });
 
+    // 2. Update registrant status to APPROVED
     await turso.execute({
       sql: "UPDATE registrants SET status = 'APPROVED' WHERE id = ?",
       args: [registrant.id]

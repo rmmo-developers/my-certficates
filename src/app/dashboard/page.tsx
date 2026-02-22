@@ -119,7 +119,7 @@ const initialForm = {
     dateIssued: "",
     schoolYear: "",
     yearGraduated: "",
-    validity: "VALID", 
+    validity: "PENDING", 
     googlePhotosLink: "", 
     manualCertNumber: "",
   };
@@ -208,6 +208,37 @@ const refreshData = async () => {
     checkUser();
   }, [router, supabase]);
 
+useEffect(() => {
+  // 1. Create the subscription
+  const channel = supabase
+    .channel('realtime-registrants')
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT', // Listen specifically for new entries
+        schema: 'public',
+        table: 'registrants',
+      },
+      (payload) => {
+        console.log('New registrant detected!', payload.new);
+        // 2. Trigger your existing refresh function
+        refreshData(); 
+        
+        // Optional: Add a browser notification or toast here
+        if (Notification.permission === "granted") {
+          new Notification("New Registration Received", {
+            body: `New entry from ${payload.new.first_name} ${payload.new.surname}`,
+          });
+        }
+      }
+    )
+    .subscribe();
+
+  // 3. Cleanup subscription on unmount
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, [supabase]);
 
 const RefreshIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -268,7 +299,7 @@ const handlePromoteRegistrant = (reg: any) => {
     surname: reg.surname.toUpperCase(),
     suffix: reg.suffix?.toUpperCase() || "",
     schoolYear: reg.school_year_graduation || "",
-    yearGraduated: reg.school_year_graduation?.split('-')[0] || "",
+    yearGraduated: "",
   });
   setPendingRegistrantId(reg.id);
   setIsLegacyMode(false);
@@ -276,31 +307,33 @@ const handlePromoteRegistrant = (reg: any) => {
 };
 
 const handleEditClick = (rec: any, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setIsPreviewModalOpen(false);
-    setIsEditing(rec.id);
-    
-    // Splitting logic for names
-    const nameParts = rec.issued_to ? rec.issued_to.split(" ") : [];
-    
-    setFormData({
-      firstName: (nameParts[0] || "").toUpperCase(),
-      middleName: (nameParts.length > 2 ? nameParts[1] : "").toUpperCase(),
-      surname: (nameParts.length > 2 ? nameParts.slice(2).join(" ") : nameParts[1] || "").toUpperCase(),
-      suffix: "", // <--- ADDED: This fixes the property 'suffix' is missing error
-      type: rec.type || "S",
-      issuedBy: rec.issued_by || "",
-      dateIssued: rec.date_issued || "",
-      schoolYear: rec.school_year || "",
-      yearGraduated: rec.year_graduated || "",
-      validity: rec.validity || "Permanent",
-      googlePhotosLink: rec.google_photos_link || "",
-      manualCertNumber: rec.cert_number || "",
-    });
-    
-    setIsLegacyMode(!rec.isModern);
-    setIsModalOpen(true);
-  };
+  if (e) e.stopPropagation();
+  setIsPreviewModalOpen(false);
+  setIsEditing(rec.id);
+  
+  // Better parsing logic
+  const nameParts = rec.issued_to ? rec.issued_to.split(" ") : [];
+  
+  setFormData({
+    // If name is "JOHN DOE", firstName is JOHN, surname is DOE
+    // If name is "JOHN SMITH DOE", firstName is JOHN, middle is SMITH, surname is DOE
+    firstName: (nameParts[0] || "").toUpperCase(),
+    middleName: (nameParts.length > 2 ? nameParts[1] : "").toUpperCase(),
+    surname: (nameParts.length > 2 ? nameParts.slice(2).join(" ") : nameParts[1] || "").toUpperCase(),
+    suffix: rec.suffix || "", // Use actual suffix from DB if it exists
+    type: rec.type || "S",
+    issuedBy: rec.issued_by || "",
+    dateIssued: rec.date_issued || "",
+    schoolYear: rec.school_year || "",
+    yearGraduated: rec.year_graduated || "",
+    validity: rec.validity || "Permanent",
+    googlePhotosLink: rec.google_photos_link || "",
+    manualCertNumber: rec.cert_number || "",
+  });
+  
+  setIsLegacyMode(!rec.isModern);
+  setIsModalOpen(true);
+};
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -372,6 +405,14 @@ const handleEditClick = (rec: any, e?: React.MouseEvent) => {
   };
 const handleFormSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+
+    // --- NEW VALIDATION CHECK ---
+    if (!formData.yearGraduated || formData.yearGraduated.trim() === "") {
+        alert("Batch Year (Year Graduated) is required!"); // Or use a nicer toast notification
+        return; 
+    }
+    // ----------------------------
+
     if (!formData.googlePhotosLink && !showNoThumbnailConfirm) {
         setShowNoThumbnailConfirm(true);
         return;
@@ -389,74 +430,75 @@ const handleFormSubmit = async (e?: React.FormEvent) => {
     const upperManualCert = (formData.manualCertNumber || "").toUpperCase();
 
     try {
-        let savedRecord: any;
-        if (isEditing) {
-            const recordToEdit = records.find(r => r.id === isEditing);
-            const finalID = upperManualCert.startsWith("RMMO-") ? upperManualCert : `RMMO-${upperManualCert}`;
-            
-            const updated = { 
-                ...formData, 
-                firstName: upperFirstName,
-                middleName: upperMiddleName,
-                surname: upperSurname,
-                suffix: upperSuffix,
-                issuedTo: fullName, 
-                certNumber: finalID 
-            };
+    let savedRecord: any;
+    
+    // Prepare the standardized ID for manual entry
+    const finalManualID = upperManualCert.startsWith("RMMO-") ? upperManualCert : `RMMO-${upperManualCert}`;
 
-            await updateCertificate(isEditing, updated, recordToEdit?.isModern);
-            savedRecord = { ...updated, cert_number: finalID, issued_to: fullName };
+    // Base data object to avoid repeating code
+    const baseData = {
+        ...formData,
+        firstName: upperFirstName,
+        middleName: upperMiddleName,
+        surname: upperSurname,
+        suffix: upperSuffix,
+        issuedTo: fullName,
+    };
+
+    if (isEditing) {
+        // 1. Identify which table the record belongs to using the existing records state
+        const recordToEdit = records.find(r => r.id === isEditing);
+        
+        // 2. Determine the correct ID to use (manual ID if legacy, otherwise keep existing)
+        const certNumberToSave = isLegacyMode ? finalManualID : (recordToEdit?.cert_number || baseData.certNumber);
+
+        const updatedData = { ...baseData, certNumber: certNumberToSave };
+
+        // 3. CALL UPDATE: This uses "UPDATE...WHERE id=?" in your actions.ts
+        // This modifies the row instead of creating a new one.
+        await updateCertificate(isEditing, updatedData, !!recordToEdit?.isModern);
+        
+        savedRecord = { ...updatedData, cert_number: certNumberToSave, issued_to: fullName };
+    } else {
+        // --- NEW RECORD LOGIC (ONLY RUNS IF NOT EDITING) ---
+        if (isLegacyMode) {
+            // Creates a new row in 'certificates'
+            await saveCertificate({ ...baseData, certNumber: finalManualID });
+            savedRecord = { ...baseData, cert_number: finalManualID, issued_to: fullName };
         } else {
-            if (isLegacyMode) {
-                const finalID = upperManualCert.startsWith("RMMO-") ? upperManualCert : `RMMO-${upperManualCert}`;
-                
-                await saveCertificate({ 
-                    ...formData, 
-                    firstName: upperFirstName,
-                    middleName: upperMiddleName,
-                    surname: upperSurname,
-                    suffix: upperSuffix,
-                    issuedTo: fullName, 
-                    certNumber: finalID 
-                });
-                savedRecord = { ...formData, cert_number: finalID, issued_to: fullName };
-            } else {
-                // Serial counting logic (consistent across years)
-                const count = await getModernCount(formData.yearGraduated, formData.type);
-                
-                // Auto-generate ID gamit ang yearGraduated
-                const finalID = generateCertificateID(
-                    upperFirstName, 
-                    upperSurname, 
-                    formData.yearGraduated, 
-                    formData.type, 
-                    count + 1
-                );
+            // Logic for Modern Table
+            const count = await getModernCount(formData.yearGraduated, formData.type);
+            const finalID = generateCertificateID(
+                upperFirstName, 
+                upperSurname, 
+                formData.yearGraduated, 
+                formData.type, 
+                count + 1
+            );
 
-                await saveModernCertificate({ 
-                    ...formData, 
-                    firstName: upperFirstName,
-                    middleName: upperMiddleName,
-                    surname: upperSurname,
-                    suffix: upperSuffix,
-                    issuedTo: fullName, 
-                    certNumber: finalID 
-                });
-                
-                if (pendingRegistrantId) {
-                  await updateRegistrantStatus(pendingRegistrantId, 'APPROVED');
-                }
-                
-                savedRecord = { ...formData, cert_number: finalID, issued_to: fullName };
+            // Creates a new row in 'certificates_modern'
+            await saveModernCertificate({ ...baseData, certNumber: finalID });
+            
+            // If this came from a registrant, mark them as approved
+            if (pendingRegistrantId) {
+                await updateRegistrantStatus(pendingRegistrantId, 'APPROVED'); //
             }
+            
+            savedRecord = { ...baseData, cert_number: finalID, issued_to: fullName };
         }
-        setShowNoThumbnailConfirm(false);
-        await refreshData();
-        closeModal();
-        setQrModalRecord({ ...savedRecord, isNewRecord: true }); 
-    } catch (err) { 
-        console.error("Submission error:", err); 
     }
+
+    // --- REFRESH AND UI CLEANUP ---
+    setShowNoThumbnailConfirm(false);
+    await refreshData();
+    closeModal(); // This must reset isEditing, pendingRegistrantId, and formData
+    
+    // Show QR code - isNewRecord is false if we were just editing
+    setQrModalRecord({ ...savedRecord, isNewRecord: !isEditing }); 
+
+} catch (err) { 
+    console.error("Submission error:", err); 
+}
     setLoading(false);
 };
   return (
@@ -758,78 +800,116 @@ const handleFormSubmit = async (e?: React.FormEvent) => {
             <img src={getImageUrl(selectedRecord.google_photos_link)} className="max-w-full max-h-full object-contain" alt="Full View" />
         </div>
       )}
-	  {/* Registrant Summary Modal */}
-      {isRegistrantModalOpen && selectedRegistrant && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsRegistrantModalOpen(false)}></div>
-          <div className="relative w-full max-w-lg bg-white rounded-[28px] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+
+{/* Registrant Summary Modal */}
+{isRegistrantModalOpen && selectedRegistrant && (
+  <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsRegistrantModalOpen(false)}></div>
+    <div className="relative w-full max-w-lg bg-white rounded-[28px] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+      
+      {(() => {
+        // Helper function for clipboard
+        const handleCopy = (text) => {
+          if (!text || text === "N/A") return;
+          navigator.clipboard.writeText(text);
+        };
+
+        const fullName = `${selectedRegistrant.first_name} ${selectedRegistrant.middle_name ? `${selectedRegistrant.middle_name.charAt(0)}.` : ''} ${selectedRegistrant.surname} ${selectedRegistrant.suffix || ""}`.trim();
+
+        // Sub-component for clickable data fields
+        const CopyableField = ({ label, value, colorClass = "text-slate-700" }) => (
+          <div className="flex flex-col items-start">
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">{label}</label>
+            <div 
+              onClick={() => handleCopy(value)}
+              className="group relative flex items-center gap-2 cursor-pointer w-fit"
+            >
+              <p className={`text-[14px] font-bold ${colorClass} transition-colors group-hover:text-blue-600 select-all`}>
+                {value || "N/A"}
+              </p>
+              {/* Clipboard Icon - Only shows when hovering the text container */}
+              <svg 
+                className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-blue-500 transition-all duration-200 transform group-hover:scale-110" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor" 
+                strokeWidth={2.5}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+              </svg>
+            </div>
+          </div>
+        );
+
+        return (
+          <>
             <div className="p-6 border-b border-slate-100 bg-[#F3F6FC] flex justify-between items-center">
               <h3 className="text-xl font-medium">Registrant Summary</h3>
               <button onClick={() => setIsRegistrantModalOpen(false)} className="w-10 h-10 flex items-center justify-center hover:bg-slate-200 cursor-pointer rounded-full">✕</button>
             </div>
             
-            <div className="p-8 space-y-5 overflow-y-auto max-h-[70vh]">
-              {/* A. FULL NAME */}
-              <div className="group relative">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Full Name</label>
-                <p className="text-[16px] font-bold select-all bg-slate-50 p-3 rounded-xl border border-transparent hover:border-blue-200 uppercase">
-                  {selectedRegistrant.first_name} {selectedRegistrant.middle_name ? `${selectedRegistrant.middle_name.charAt(0)}.` : ''} {selectedRegistrant.surname} {selectedRegistrant.suffix || ""}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                {/* B. PRONOUNS */}
-                <div className="group relative">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Pronouns / Gender</label>
-                  <p className="text-[15px] font-semibold select-all bg-slate-50 p-3 rounded-xl border border-transparent hover:border-blue-200">
-                    {selectedRegistrant.gender || "Not Specified"}
-                  </p>
-                </div>
-                {/* D. SCHOOL YEAR */}
-                <div className="group relative">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">School Year</label>
-                  <p className="text-[15px] font-semibold select-all bg-slate-50 p-3 rounded-xl border border-transparent hover:border-blue-200">
-                    {selectedRegistrant.school_year_graduation}
-                  </p>
-                </div>
-              </div>
-
-              {/* C. POSITION */}
-              <div className="group relative">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Position / Designation</label>
-                <p className="text-[15px] font-semibold select-all bg-slate-50 p-3 rounded-xl border border-transparent hover:border-blue-200">
-                  {selectedRegistrant.position_assigned}
-                </p>
-              </div>
-
-              {/* E. EMAIL */}
-              <div className="group relative">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Email Address</label>
-                <p className="text-[15px] font-semibold text-blue-600 select-all bg-blue-50/30 p-3 rounded-xl border border-transparent hover:border-blue-200">
-                  {selectedRegistrant.email}
-                </p>
-              </div>
-
-              <div className="pt-2">
-                <h4 className="text-[11px] font-black text-blue-600 uppercase tracking-[0.2em] mb-3">Academic Records</h4>
-                <div className="bg-slate-50 rounded-2xl p-4 space-y-4 border border-slate-100">
+            <div className="p-8 space-y-6 overflow-y-auto max-h-[70vh]">
+              
+              {/* PERSONAL INFORMATION */}
+              <div className="space-y-3">
+                <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Personal Details</h4>
+                <div className="bg-slate-50 rounded-2xl p-5 space-y-5 border border-slate-100">
+                  <CopyableField label="Full Name" value={fullName} />
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-[9px] font-black text-slate-400 uppercase">Grade & Section</label>
-                      <p className="text-[14px] font-bold text-slate-700">{selectedRegistrant.grade_section || "N/A"}</p>
-                    </div>
-                    <div>
-                      <label className="text-[9px] font-black text-slate-400 uppercase">Academic Strand</label>
-                      <p className="text-[14px] font-bold text-slate-700">{selectedRegistrant.strand || "N/A"}</p>
-                    </div>
+                    <CopyableField label="Gender" value={selectedRegistrant.gender} />
+                    <CopyableField label="Birthday" value={selectedRegistrant.birthday} />
                   </div>
                 </div>
               </div>
+
+              {/* ASSIGNMENT DETAILS */}
+              <div className="space-y-3">
+                <h4 className="text-[11px] font-black text-blue-600 uppercase tracking-[0.2em]">Assignment</h4>
+                <div className="bg-blue-50/30 rounded-2xl p-5 space-y-5 border border-blue-100/50">
+                  <CopyableField label="Position / Designation" value={selectedRegistrant.position_assigned} />
+                  <CopyableField label="Email Address" value={selectedRegistrant.email} colorClass="text-blue-600" />
+                </div>
+              </div>
+
+              {/* ACADEMIC RECORDS */}
+              <div className="space-y-3">
+                <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Academic Records</h4>
+                <div className="bg-slate-50 rounded-2xl p-5 space-y-5 border border-slate-100">
+                  <div className="grid grid-cols-2 gap-4">
+                    <CopyableField label="Grade & Section" value={selectedRegistrant.grade_level_section} />
+                    <CopyableField label="Academic Strand" value={selectedRegistrant.strand} />
+                  </div>
+                  <CopyableField label="Graduation Year" value={selectedRegistrant.school_year_graduation} />
+                </div>
+              </div>
+
+              {/* ENGAGEMENT PERIOD */}
+              <div className="space-y-3">
+                <h4 className="text-[11px] font-black text-emerald-600 uppercase tracking-[0.2em]">Engagement Period</h4>
+                <div className="bg-emerald-50/30 rounded-2xl p-5 border border-emerald-100/50">
+                  <div className="grid grid-cols-2 gap-4">
+                    <CopyableField label="Date Started" value={selectedRegistrant.date_started} />
+                    <CopyableField label="Date Ended" value={selectedRegistrant.date_ended} />
+                  </div>
+                </div>
+              </div>
+
+              {/* APPLICATION STATUS */}
+              <div className="pt-4 border-t border-slate-100">
+                <div className="flex items-center justify-between bg-amber-50 p-4 rounded-2xl border border-amber-100">
+                  <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Application Status</span>
+                  <span className="text-[14px] font-black text-amber-700 tracking-wider uppercase">
+                    {selectedRegistrant.status || "PENDING"}
+                  </span>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
-	  
+          </>
+        );
+      })()}
+    </div>
+  </div>
+)}
 {/* MD3 Form Modal - Fullscreen on Mobile */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center md:p-4">
@@ -894,9 +974,9 @@ const handleFormSubmit = async (e?: React.FormEvent) => {
                                 <div>
                                     <label className="text-[12px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Validation Status</label>
                                     <select className="w-full p-4 bg-[#EEF1F9] rounded-xl text-[16px] outline-none cursor-pointer hover:bg-slate-200 active:bg-slate-300 transition-all" value={formData.validity} onChange={e => setFormData({...formData, validity: e.target.value})}>
-                                        <option value="VALID">VALID</option>
-                                        <option value="REVOKED">REVOKED</option>
                                         <option value="PENDING">PENDING</option>
+										<option value="VALID">VALID</option>
+                                        <option value="REVOKED">REVOKED</option>
                                     </select>
                                 </div>
                             </div>
@@ -914,7 +994,19 @@ const handleFormSubmit = async (e?: React.FormEvent) => {
                                     <label className="text-[11px] font-bold text-slate-400 uppercase block mb-2">SY</label>
                                     <input required placeholder="e.g., 2025-2026" className="w-full p-4 bg-[#EEF1F9] rounded-xl text-[16px] hover:bg-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-600 transition-all outline-none" value={formData.schoolYear} onChange={e => setFormData({...formData, schoolYear: e.target.value})} />
                                 </div>
-                                <div><label className="text-[11px] font-bold text-slate-400 uppercase block mb-2">Batch Year</label><input placeholder="2025" className="w-full p-4 bg-[#EEF1F9] rounded-xl text-[16px] hover:bg-slate-200 focus:bg-white active:bg-slate-300 transition-all" value={formData.yearGraduated} onChange={e => setFormData({...formData, yearGraduated: e.target.value})} /></div>
+                                <div>
+  <label className="block text-sm font-medium text-slate-700 mb-1">
+    Batch Year <span className="text-red-500">*</span>
+  </label>
+  <input
+    required
+    type="text"
+    placeholder="e.g. 2025"
+    value={formData.yearGraduated}
+    onChange={(e) => setFormData({ ...formData, yearGraduated: e.target.value })}
+    className={`w-full p-4 rounded-xl border ${!formData.yearGraduated ? 'border-red-300' : 'border-slate-200'}`}
+  />
+</div>
                             </div>
                         </div>
 
