@@ -649,7 +649,7 @@ if (isEditing) {
           <div className="flex flex-col gap-2">
               {/* Conditional Rendering based on Tab */}
               {activeTab === "certificates" ? (
-                  filteredRecords.map((rec) => (
+                  filteredRecords.map((rec: any) => (
                       <div 
                           key={`${rec.isModern ? 'm' : 'l'}-${rec.id}`}
                           onClick={() => { setSelectedRecord(rec); setIsPreviewModalOpen(true); }}
@@ -810,10 +810,10 @@ if (isEditing) {
       
       {(() => {
         // Helper function for clipboard
-        const handleCopy = (text) => {
-          if (!text || text === "N/A") return;
-          navigator.clipboard.writeText(text);
-        };
+        const handleCopy = (text: string) => { // Added : string here
+		  if (!text || text === "N/A") return;
+		  navigator.clipboard.writeText(text);
+		};
 
         const fullName = `${selectedRegistrant.first_name} ${selectedRegistrant.middle_name ? `${selectedRegistrant.middle_name.charAt(0)}.` : ''} ${selectedRegistrant.surname} ${selectedRegistrant.suffix || ""}`.trim();
 
