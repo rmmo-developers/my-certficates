@@ -19,12 +19,12 @@ export const metadata: Metadata = {
   description: "Verify Documents Easily",
   openGraph: {
     title: "ROM Portal by RMMO",
-    description: "Verify Documents Easily",
+    description: "Registration and Verify Documents Easily",
     url: "https://romportal.vercel.app",
     siteName: "ROM Portal by RMMO",
     images: [
       {
-        url: "/og-image.png", // This points to public/og-image.png
+        url: "/og-image.jpg", // This points to public/og-image.png
         width: 1200,
         height: 630,
         alt: "ROM Portal by RMMO",
@@ -36,8 +36,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "ROM Portal by RMMO",
-    description: "Verify Documents Easily",
-    images: ["/og-image.png"],
+    description: "Registration and Verify Documents Easily",
+    images: ["/og-image.jpg"],
   },
 };
 
