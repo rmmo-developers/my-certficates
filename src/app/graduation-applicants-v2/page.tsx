@@ -76,14 +76,24 @@ export default function GradApplicantsPage() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [submitted, hasStarted]);
 
+  // Helper to scroll to top
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleStart = () => {
+    setHasStarted(true);
+    scrollToTop();
+  };
+
   const nextStep = () => {
     setCurrentStep((prev) => prev + 1);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const prevStep = () => {
     setCurrentStep((prev) => prev - 1);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const handleOpenConfirm = () => {
@@ -99,7 +109,7 @@ export default function GradApplicantsPage() {
 
       if (result.success) {
         setSubmitted(true);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        scrollToTop();
       } else {
         alert("Submission Failed: " + (result.error || "System Error"));
       }
@@ -177,7 +187,7 @@ export default function GradApplicantsPage() {
                 </p>
                 <div className="bg-blue-50 p-5 rounded-xl border-l-4 border-blue-700">
                   <p className="text-blue-900 font-bold italic text-[13px]">
-                    Note: Data is NOT stored permanently. Upon certificate release, only your Name and Graduation Year are retained for future credential validation.
+                    Note: Most of your data is deleted once your certificate is released. We only keep your Name and Graduation Year for future verification.
                   </p>
                 </div>
               </div>
@@ -233,7 +243,7 @@ export default function GradApplicantsPage() {
 
               <button 
                 disabled={!privacyAgreed}
-                onClick={() => setHasStarted(true)} 
+                onClick={handleStart} 
                 className="cursor-pointer mt-8 w-full py-4 bg-blue-700 text-white rounded-[20px] font-bold text-lg hover:bg-blue-800 transition-all disabled:opacity-40"
               >
                 GET STARTED

@@ -190,7 +190,7 @@ export default function GradApplicantsPage() {
               </p>
               <div className="bg-blue-50 p-5 rounded-xl border-l-4 border-blue-700">
                 <p className="text-blue-900 font-bold italic text-[13px]">
-                  Note: Data is NOT stored permanently. Upon certificate release, only your Name and Graduation Year are retained for future credential validation.
+                  Note: Most of your data is deleted once your certificate is released. We only keep your Name and Graduation Year for future verification.
                 </p>
               </div>
             </div>
@@ -473,7 +473,7 @@ export default function GradApplicantsPage() {
 		  confirmText="I Certify & Submit"
 		  onConfirm={handleFinalSubmit}
 		  onCancel={() => setShowConfirmModal(false)}
-		  isLoading={loading} // <--- Add this line here
+		  isLoading={loading}
 		/>
     </div>
   );

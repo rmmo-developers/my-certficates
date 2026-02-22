@@ -203,13 +203,16 @@ function VerifyContent() {
   // --- SEARCH LANDING ---
   if (!viewSummary) {
     return (
-      <div className="min-h-screen bg-[#F8F9FF] text-slate-900 font-sans flex flex-col">
-        <main className="flex-1 flex flex-col items-center justify-center px-6 pb-4">
-          <div className="text-center mt-5 mb-8">
-            <h2 className="text-4xl md:text-5xl font-normal text-slate-900">
-              ROM Portal
-            </h2>
-          </div>
+<div className="min-h-screen bg-[#F8F9FF] text-slate-900 font-sans flex flex-col">
+  <main className="flex-1 flex flex-col items-center justify-center px-6 pb-4">
+    <div className="text-center mt-10 mb-8">
+      {/* Replaced <h2> with logo placement */}
+      <img 
+        src="/logo.png" 
+        alt="RMMO Logo" 
+        className="h-auto w-auto max-w-[300px] md:max-w-[380px] mx-auto"
+      />
+    </div>
 
           <div className="w-full max-sm:max-w-xs md:max-w-sm">
             <form
