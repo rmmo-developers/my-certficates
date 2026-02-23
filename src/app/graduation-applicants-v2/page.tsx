@@ -151,8 +151,7 @@ export default function GradApplicantsPage() {
     </div>
   );
 
-  if (submitted) {
-    return (
+
 if (submitted) {
     return (
       <div className="min-h-screen bg-[#F8F9FF] flex items-center justify-center p-6 text-black">
