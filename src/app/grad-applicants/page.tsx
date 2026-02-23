@@ -162,21 +162,29 @@ export default function GradApplicantsPage() {
   if (submitted) {
     return (
       <div className="min-h-screen bg-[#F8F9FF] flex items-center justify-center p-6 text-black">
-        <div className="max-w-sm w-full bg-white rounded-[28px] p-8 shadow-sm text-center border border-slate-100">
-          <div className="text-emerald-600 mb-2">
-            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h1 className="text-2xl font-bold mb-2">Application Sent</h1>
-          <p className="text-slate-600 mb-3 font-bold text-[14px]">
-            Your certificate is on the way! <br />
-          </p>
-          <p className="text-slate-600 mb-1 font-bold text-[14px]">
-            For any concerns, please contact us at <span className="text-emerald-600">records.rmmo@gmail.com</span>.
-          </p>
-        </div>
-      </div>
+  <div className="max-w-sm w-full bg-white rounded-[28px] p-8 shadow-sm text-center border border-slate-100">
+    <div className="text-emerald-600 mb-2">
+      <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </div>
+    
+    <h1 className="text-2xl font-bold mb-1">Application Sent</h1>
+    
+    {/* Registrant Name Display */}
+    <p className="text-emerald-600 font-semibold text-lg mb-3">
+      Thank you, {registrantName}!
+    </p>
+
+    <p className="text-slate-600 mb-3 font-bold text-[14px]">
+      Your certificate is on the way! <br />
+    </p>
+    
+    <p className="text-slate-600 mb-1 font-bold text-[14px]">
+      For any concerns, please contact us at <span className="text-emerald-600">records.rmmo@gmail.com</span>.
+    </p>
+  </div>
+</div>
     );
   }
 
@@ -332,11 +340,15 @@ export default function GradApplicantsPage() {
 					<div className="md:col-span-4">
 					  <label className={labelClass}>Date of Birth{requiredStar}</label>
 					  <input 
-						type="date" 
+						type="text" 
 						required 
-						className={`${inputClass} cursor-pointer`} 
+						placeholder="DD/MMM/YYYY (e.g. 23/FEB/1995)"
+						className={`${inputClass} cursor-text`} 
 						value={formData.birthday} 
-						onChange={e => setFormData({...formData, birthday: e.target.value})} 
+						onChange={e => {
+						  // Optional: Add logic here to auto-format to uppercase
+						  setFormData({...formData, birthday: e.target.value.toUpperCase()})
+						}} 
 					  />
 					</div>
                   <div className="md:col-span-4"><label className={labelClass}>Email Address{requiredStar}</label>
