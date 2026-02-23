@@ -202,7 +202,7 @@ export default function GradApplicantsPage() {
                 onClick={handleGoToPrivacy} 
                 className="cursor-pointer mt-8 w-full py-4 bg-blue-700 text-white rounded-[20px] font-bold text-lg hover:bg-blue-800 transition-all"
               >
-                PROCEED TO PRIVACY CONSENT
+                GET STARTED
               </button>
             </div>
           </div>
@@ -261,17 +261,11 @@ export default function GradApplicantsPage() {
 
               <div className="flex gap-3">
                 <button 
-                  onClick={() => setShowPrivacy(false)} 
-                  className="cursor-pointer mt-8 flex-1 py-4 bg-white text-slate-500 border border-slate-200 rounded-[20px] font-bold text-lg hover:bg-slate-50 transition-all"
-                >
-                  BACK
-                </button>
-                <button 
                   disabled={!privacyAgreed}
                   onClick={handleStart} 
                   className="cursor-pointer mt-8 flex-[2] py-4 bg-blue-700 text-white rounded-[20px] font-bold text-lg hover:bg-blue-800 transition-all disabled:opacity-40"
                 >
-                  GET STARTED
+                  NEXT
                 </button>
               </div>
             </div>
@@ -365,7 +359,7 @@ export default function GradApplicantsPage() {
             {currentStep === 2 && (
               <form onSubmit={(e) => { e.preventDefault(); nextStep(); }} className="space-y-6 animate-in fade-in slide-in-from-right-4">
                 <section className="bg-white rounded-[24px] p-6 md:p-8 border border-slate-100 shadow-sm">
-                  <h2 className="text-lg font-black text-slate-900 mb-6 flex items-center gap-3"><span className="w-1 h-6 bg-amber-500 rounded-full"></span> Academic Records</h2>
+                  <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-3"><span className="w-1 h-6 bg-amber-500 rounded-full"></span> Academic Records</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div><label className={labelClass}>Grade & Section{requiredStar}</label><input required className={inputClass} value={formData.gradeLevelSection} onChange={e => setFormData({...formData, gradeLevelSection: e.target.value.toUpperCase()})} /></div>
                     <div><label className={labelClass}>Academic Strand{requiredStar}</label>
@@ -401,7 +395,7 @@ export default function GradApplicantsPage() {
             {currentStep === 3 && (
               <form onSubmit={(e) => { e.preventDefault(); nextStep(); }} className="space-y-6 animate-in fade-in slide-in-from-right-4">
                 <section className="bg-white rounded-[24px] p-6 md:p-8 border border-slate-100 shadow-sm">
-                  <h2 className="text-lg font-black text-slate-900 mb-6 flex items-center gap-3"><span className="w-1 h-6 bg-emerald-500 rounded-full"></span> RMMO Service History</h2>
+                  <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-3"><span className="w-1 h-6 bg-emerald-500 rounded-full"></span> RMMO Service History</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div><label className={labelClass}>Service Started{requiredStar}</label><input type="date" required className={`${inputClass} cursor-pointer`} value={formData.dateStarted} onChange={e => setFormData({...formData, dateStarted: e.target.value})} /></div>
                     <div><label className={labelClass}>Service Ended{requiredStar}</label><input type="date" required className={`${inputClass} cursor-pointer`} value={formData.dateEnded}  onChange={e => setFormData({...formData, dateEnded: e.target.value})} /></div>

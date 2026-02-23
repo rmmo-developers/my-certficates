@@ -346,7 +346,7 @@ export default function GradApplicantsPage() {
             </section>
 
             <section className="bg-white rounded-[24px] p-6 md:p-8 border border-slate-100 shadow-sm">
-              <h2 className="text-lg font-black text-slate-900 mb-6 flex items-center gap-3"><span className="w-1 h-6 bg-amber-500 rounded-full"></span> Academic Records</h2>
+              <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-3"><span className="w-1 h-6 bg-amber-500 rounded-full"></span> Academic Records</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div><label className={labelClass}>Grade & Section{requiredStar}</label><input required className={inputClass} value={formData.gradeLevelSection} onChange={e => setFormData({...formData, gradeLevelSection: e.target.value.toUpperCase()})} /></div>
                 <div><label className={labelClass}>Academic Strand{requiredStar}</label>
@@ -374,7 +374,7 @@ export default function GradApplicantsPage() {
             </section>
 
             <section className="bg-white rounded-[24px] p-6 md:p-8 border border-slate-100 shadow-sm">
-              <h2 className="text-lg font-black text-slate-900 mb-6 flex items-center gap-3"><span className="w-1 h-6 bg-emerald-500 rounded-full"></span>RMMO Service History</h2>
+              <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-3"><span className="w-1 h-6 bg-emerald-500 rounded-full"></span>RMMO Service History</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div><label className={labelClass}>Service Started{requiredStar}</label><input type="date" required className={`${inputClass} cursor-pointer`} value={formData.dateStarted} onChange={e => setFormData({...formData, dateStarted: e.target.value})} /></div>
                 <div><label className={labelClass}>Service Ended{requiredStar}</label><input type="date" required className={`${inputClass} cursor-pointer`} value={formData.dateEnded}  onChange={e => setFormData({...formData, dateEnded: e.target.value})} /></div>
