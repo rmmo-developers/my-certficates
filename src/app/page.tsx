@@ -107,25 +107,38 @@ function VerifyContent() {
 
   useEffect(() => {
     let scanner: Html5QrcodeScanner | null = null;
-    if (isScannerOpen) {
-      // Browser permissions are triggered immediately when render is called
-      scanner = new Html5QrcodeScanner(
-        "reader",
-        { fps: 10, qrbox: 250 },
-        false,
-      );
-      scanner.render(
-        (text) => {
-          processDecodedText(text);
-          if (scanner) scanner.clear();
-        },
-        (error) => {
-          // Silent error for scanning frames
-        },
-      );
-    }
+    
+    // Using a timeout to ensure the DOM element #reader is fully rendered before initializing
+    const timer = setTimeout(() => {
+      if (isScannerOpen) {
+        scanner = new Html5QrcodeScanner(
+          "reader",
+          { 
+            fps: 10, 
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0,
+            rememberLastUsedCamera: true,
+            supportedScanTypes: [0] // 0 = QR code only
+          },
+          false,
+        );
+        scanner.render(
+          (text) => {
+            processDecodedText(text);
+            if (scanner) scanner.clear();
+          },
+          (error) => {
+            // Silent error for scanning frames
+          },
+        );
+      }
+    }, 300);
+
     return () => {
-      if (scanner) scanner.clear().catch(() => {});
+      clearTimeout(timer);
+      if (scanner) {
+        scanner.clear().catch((error) => console.error("Failed to clear scanner", error));
+      }
     };
   }, [isScannerOpen]);
 
@@ -146,7 +159,6 @@ function VerifyContent() {
   };
 
   const autoVerify = async (id: string) => {
-    // Replaced browser alert with Modal UI
     if (!id || id.trim() === "RMMO-") {
       setIsInputErrorModalOpen(true);
       return;
@@ -203,16 +215,15 @@ function VerifyContent() {
   // --- SEARCH LANDING ---
   if (!viewSummary) {
     return (
-<div className="min-h-screen bg-[#F8F9FF] text-slate-900 font-sans flex flex-col">
-  <main className="flex-1 flex flex-col items-center justify-center px-6 pb-4">
-    <div className="text-center mt-10 mb-8">
-      {/* Replaced <h2> with logo placement */}
-      <img 
-        src="/logo.png" 
-        alt="RMMO Logo" 
-        className="h-auto w-auto max-w-[300px] md:max-w-[380px] mx-auto"
-      />
-    </div>
+      <div className="min-h-screen bg-[#F8F9FF] text-slate-900 font-sans flex flex-col">
+        <main className="flex-1 flex flex-col items-center justify-center px-6 pb-4">
+          <div className="text-center mt-10 mb-8">
+            <img 
+              src="/logo.png" 
+              alt="RMMO Logo" 
+              className="h-auto w-auto max-w-[300px] md:max-w-[380px] mx-auto"
+            />
+          </div>
 
           <div className="w-full max-sm:max-w-xs md:max-w-sm">
             <form
@@ -239,7 +250,6 @@ function VerifyContent() {
                 disabled={loading}
                 className="flex items-center justify-center gap-2 cursor-pointer w-full bg-blue-700 text-white py-4 rounded-full font-bold text-xs uppercase hover:bg-blue-800 transition-all shadow-md disabled:opacity-50"
               >
-                {/* Search Icon SVG */}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -254,7 +264,6 @@ function VerifyContent() {
                     d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
                   />
                 </svg>
-
                 <span>Verify Record</span>
               </button>
             </form>
@@ -324,95 +333,48 @@ function VerifyContent() {
             <div id="reader-hidden" className="hidden"></div>
             {isScannerOpen && (
               <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex flex-col items-center justify-center p-6">
-                {/* Style injection to override the library's internal elements */}
-
                 <style>{`
-
-      /* 1. Hide the "Scan an Image File" link and the Info icon */
-
-      #reader__dashboard_section_csr span > a, 
-
-      #reader img[alt="Info icon"],
-
-      #reader__header_message { 
-
-        display: none !important; 
-
-      }
-
-
-
-      /* 2. Style the "Request Camera Permissions" button */
-
-      #reader__camera_permission_button {
-
-        background-color: #2563eb !important;
-
-        color: white !important;
-
-        padding: 12px 28px !important;
-
-        border-radius: 9999px !important;
-
-        border: none !important;
-
-        font-weight: 600 !important;
-
-        font-size: 16px !important;
-
-        cursor: pointer !important;
-
-        margin-top: 15px !important;
-
-        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3) !important;
-
-        transition: transform 0.2s ease !important;
-
-      }
-
-      #reader__camera_permission_button:active {
-
-        transform: scale(0.95) !important;
-
-      }
-
-
-
-      /* 3. Center everything inside the scanner */
-
-      #reader { border: none !important; }
-
-      #reader__dashboard_section_csr { 
-
-        display: flex !important; 
-
-        flex-direction: column !important; 
-
-        align-items: center !important; 
-
-        justify-content: center !important;
-
-      }
-
-      #reader__scan_region {
-
-        display: flex !important;
-
-        justify-content: center !important;
-
-        align-items: center !important;
-
-      }
-
-    `}</style>
-
-                {/* Main Scanner Card */}
+                  #reader__dashboard_section_csr span > a, 
+                  #reader img[alt="Info icon"],
+                  #reader__header_message { 
+                    display: none !important; 
+                  }
+                  #reader__camera_permission_button {
+                    background-color: #2563eb !important;
+                    color: white !important;
+                    padding: 12px 28px !important;
+                    border-radius: 9999px !important;
+                    border: none !important;
+                    font-weight: 600 !important;
+                    font-size: 16px !important;
+                    cursor: pointer !important;
+                    margin-top: 15px !important;
+                    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3) !important;
+                    transition: transform 0.2s ease !important;
+                  }
+                  #reader__camera_permission_button:active {
+                    transform: scale(0.95) !important;
+                  }
+                  #reader { border: none !important; width: 100% !important; }
+                  #reader__dashboard_section_csr { 
+                    display: flex !important; 
+                    flex-direction: column !important; 
+                    align-items: center !important; 
+                    justify-content: center !important;
+                  }
+                  #reader__scan_region {
+                    display: flex !important;
+                    justify-content: center !important;
+                    align-items: center !important;
+                  }
+                  #reader video {
+                    border-radius: 20px !important;
+                  }
+                `}</style>
 
                 <div className="w-full max-w-md bg-white rounded-[32px] overflow-hidden shadow-2xl flex flex-col items-center py-10 px-6">
                   <div id="reader" className="w-full"></div>
                 </div>
-
-                {/* 3. Close button in a circle (X) located UNDER the scanner */}
 
                 <button
                   onClick={() => setIsScannerOpen(false)}
@@ -443,7 +405,6 @@ function VerifyContent() {
           </p>
         </footer>
 
-        {/* Global Loading Modal */}
         {loading && (
           <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-6 z-[200]">
             <div className="bg-white rounded-[28px] p-8 max-w-[280px] w-full text-center shadow-xl flex flex-col items-center">
@@ -458,7 +419,6 @@ function VerifyContent() {
           </div>
         )}
 
-        {/* Modal for empty/invalid input format */}
         {isInputErrorModalOpen && (
           <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-6 z-[110]">
             <div className="bg-[#F3F6FC] rounded-[28px] p-8 max-w-[312px] w-full text-center shadow-xl">
@@ -525,10 +485,8 @@ function VerifyContent() {
       </nav>
 
       <main className="max-w-7xl mx-auto w-full px-4 md:px-8 grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 lg:min-h-0 pb-6">
-        {/* Detail Box Column */}
         <div className="lg:col-span-4 space-y-4 lg:overflow-y-auto lg:pr-2">
           <div className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm flex flex-col items-center">
-            {/* Top Center Verification Indicator */}
             <div className="flex flex-col items-center mb-6">
               <CheckCircleIcon />
               <span className="mt-2 text-[12px] font-bold text-blue-700 uppercase tracking-[0.2em]">
@@ -630,7 +588,6 @@ function VerifyContent() {
           </div>
         </div>
 
-        {/* Document Preview Column */}
         <div className="lg:col-span-8 flex flex-col min-h-[500px] lg:min-h-0">
           <div className="bg-white p-4 rounded-[28px] shadow-sm border border-slate-100 flex-1 flex flex-col min-h-0">
             <div
@@ -688,7 +645,6 @@ function VerifyContent() {
         </div>
       </main>
 
-      {/* Full Screen View */}
       {isFullscreen && !imageError && (
         <div className="fixed inset-0 z-[300] bg-black/95 backdrop-blur-sm flex items-center justify-center p-4">
           <button

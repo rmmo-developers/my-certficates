@@ -35,6 +35,7 @@ const ActionModal = ({ isOpen, title, message, onConfirm, onCancel, confirmText 
 
 export default function GradApplicantsPage() {
   const router = useRouter();
+  // currentStep 1: Introduction, 2: Privacy, 3: Registration Form, 4: Review
   const [currentStep, setCurrentStep] = useState(1); 
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -68,7 +69,7 @@ export default function GradApplicantsPage() {
   // PREVENT ACCIDENTALLY LEAVING THE FORM
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (!submitted && currentStep > 1) {
+      if (!submitted && currentStep > 2) {
         e.preventDefault();
         e.returnValue = "Are you sure you want to leave? Your changes will not be saved.";
       }
@@ -130,24 +131,33 @@ export default function GradApplicantsPage() {
   const labelClass = "text-[12px] font-black text-slate-700 uppercase ml-1 mb-1.5 block tracking-wider";
   const requiredStar = <span className="text-red-600 ml-1 font-bold">*</span>;
 
-  const StepTracker = () => (
-    <div className="flex items-center justify-between mb-6 max-w-[280px] mx-auto">
-      {[1, 2, 3, 4].map((step) => (
-        <div key={step} className="flex items-center">
-          <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300 ${
-            currentStep >= step ? "bg-blue-700 text-white shadow-md scale-105" : "bg-slate-200 text-slate-400"
-          }`}>
-            {step}
-          </div>
-          {step < 4 && (
-            <div className={`w-8 h-0.5 mx-1 transition-all duration-300 ${
-              currentStep > step ? "bg-blue-700" : "bg-slate-200"
-            }`} />
-          )}
-        </div>
-      ))}
-    </div>
-  );
+  const StepTracker = () => {
+    // Only show tracker if we are on the form or review steps
+    if (currentStep < 3) return null;
+
+    return (
+      <div className="flex items-center justify-between mb-6 max-w-[280px] mx-auto">
+        {[1, 2].map((step) => {
+            // Map actual UI steps (1, 2) to currentStep state (3, 4)
+            const activeStep = currentStep - 2;
+            return (
+              <div key={step} className="flex items-center">
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300 ${
+                  activeStep >= step ? "bg-blue-700 text-white shadow-md scale-105" : "bg-slate-200 text-slate-400"
+                }`}>
+                  {step}
+                </div>
+                {step < 2 && (
+                  <div className={`w-24 h-0.5 mx-1 transition-all duration-300 ${
+                    activeStep > step ? "bg-blue-700" : "bg-slate-200"
+                  }`} />
+                )}
+              </div>
+            );
+        })}
+      </div>
+    );
+  };
 
   if (submitted) {
     return (
@@ -325,7 +335,6 @@ export default function GradApplicantsPage() {
 						type="date" 
 						required 
 						className={`${inputClass} cursor-pointer`} 
-						// If formData.birthday is empty, it uses the 2005 default
 						value={formData.birthday} 
 						onChange={e => setFormData({...formData, birthday: e.target.value})} 
 					  />

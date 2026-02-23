@@ -472,7 +472,7 @@ if (isEditing) {
             const finalID = generateCertificateID(
                 upperFirstName, 
                 upperSurname, 
-                formData.yearGraduated, 
+                formData.dateIssued, 
                 formData.type, 
                 count + 1
             );

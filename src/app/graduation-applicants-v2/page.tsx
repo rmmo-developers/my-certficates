@@ -35,7 +35,8 @@ const ActionModal = ({ isOpen, title, message, onConfirm, onCancel, confirmText 
 
 export default function GradApplicantsPage() {
   const router = useRouter();
-  const [hasStarted, setHasStarted] = useState(false); // Controls entry from Intro/Privacy
+  const [hasStarted, setHasStarted] = useState(false); // Controls entry to Stepper
+  const [showPrivacy, setShowPrivacy] = useState(false); // Controls transition from Intro to Privacy
   const [currentStep, setCurrentStep] = useState(1); 
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -79,6 +80,11 @@ export default function GradApplicantsPage() {
   // Helper to scroll to top
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleGoToPrivacy = () => {
+    setShowPrivacy(true);
+    scrollToTop();
   };
 
   const handleStart = () => {
@@ -176,8 +182,8 @@ export default function GradApplicantsPage() {
 
       <main className="max-w-3xl mx-auto px-4">
         
-        {/* LANDING PAGE: INTRODUCTION & PRIVACY */}
-        {!hasStarted && (
+        {/* SCREEN 1: INTRODUCTION */}
+        {!hasStarted && !showPrivacy && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
             <div className="bg-white rounded-[24px] p-6 md:p-10 border border-slate-100 shadow-sm">
               <h2 className="text-xl font-black text-slate-900 mb-4 uppercase tracking-tighter">Introduction</h2>
@@ -192,8 +198,20 @@ export default function GradApplicantsPage() {
                 </div>
               </div>
 
-              <hr className="my-8 border-slate-100" />
+              <button 
+                onClick={handleGoToPrivacy} 
+                className="cursor-pointer mt-8 w-full py-4 bg-blue-700 text-white rounded-[20px] font-bold text-lg hover:bg-blue-800 transition-all"
+              >
+                PROCEED TO PRIVACY CONSENT
+              </button>
+            </div>
+          </div>
+        )}
 
+        {/* SCREEN 2: PRIVACY CONSENT */}
+        {!hasStarted && showPrivacy && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+            <div className="bg-white rounded-[24px] p-6 md:p-10 border border-slate-100 shadow-sm">
               <h2 className="text-xl font-black text-slate-900 mb-4 uppercase tracking-tighter">Privacy Consent</h2>
               <div className="space-y-4 text-slate-700 leading-relaxed font-bold text-[14px]">
                 <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200">
@@ -241,13 +259,21 @@ export default function GradApplicantsPage() {
                 </label>
               </div>
 
-              <button 
-                disabled={!privacyAgreed}
-                onClick={handleStart} 
-                className="cursor-pointer mt-8 w-full py-4 bg-blue-700 text-white rounded-[20px] font-bold text-lg hover:bg-blue-800 transition-all disabled:opacity-40"
-              >
-                GET STARTED
-              </button>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setShowPrivacy(false)} 
+                  className="cursor-pointer mt-8 flex-1 py-4 bg-white text-slate-500 border border-slate-200 rounded-[20px] font-bold text-lg hover:bg-slate-50 transition-all"
+                >
+                  BACK
+                </button>
+                <button 
+                  disabled={!privacyAgreed}
+                  onClick={handleStart} 
+                  className="cursor-pointer mt-8 flex-[2] py-4 bg-blue-700 text-white rounded-[20px] font-bold text-lg hover:bg-blue-800 transition-all disabled:opacity-40"
+                >
+                  GET STARTED
+                </button>
+              </div>
             </div>
           </div>
         )}
