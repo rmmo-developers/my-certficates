@@ -161,30 +161,45 @@ export default function GradApplicantsPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-[#F8F9FF] flex items-center justify-center p-6 text-black">
-  <div className="max-w-sm w-full bg-white rounded-[28px] p-8 shadow-sm text-center border border-slate-100">
-    <div className="text-emerald-600 mb-2">
-      <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    </div>
-    
-    <h1 className="text-2xl font-bold mb-1">Application Sent</h1>
-    
-    {/* Registrant Name Display */}
-    <p className="text-emerald-600 font-semibold text-lg mb-3">
-      Thank you, {registrantName}!
-    </p>
+<div className="min-h-screen bg-[#F8F9FF] flex items-center justify-center p-6 text-black">
+        <div className="max-w-sm w-full bg-white rounded-[28px] p-8 shadow-sm text-center border border-slate-100">
+          <div className="text-emerald-600 mb-2">
+            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          
+          <h1 className="text-2xl font-bold mb-1">Application Sent</h1>
+          
+          {/* Full Name Display */}
+          <div className="mb-4">
+            <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Registrant</p>
+            <p className="text-emerald-600 font-bold text-lg leading-tight uppercase">
+              {formData.firstName} {formData.middleName} {formData.surname} {!noSuffix && formData.suffix ? formData.suffix : ""}
+            </p>
+          </div>
 
-    <p className="text-slate-600 mb-3 font-bold text-[14px]">
-      Your certificate is on the way! <br />
-    </p>
-    
-    <p className="text-slate-600 mb-1 font-bold text-[14px]">
-      For any concerns, please contact us at <span className="text-emerald-600">records.rmmo@gmail.com</span>.
-    </p>
-  </div>
-</div>
+          <p className="text-slate-600 mb-4 font-bold text-[14px]">
+            Your certificate is on the way!
+          </p>
+          
+          <div className="pt-4 border-t border-slate-50">
+            <p className="text-slate-500 mb-1 font-bold text-[12px]">
+              For any concerns, please email us at:
+            </p>
+            <p className="text-emerald-600 font-bold text-[13px]">
+              records.rmmo@gmail.com
+            </p>
+          </div>
+
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-8 w-full py-3 bg-slate-100 text-slate-500 rounded-xl font-bold text-[12px] hover:bg-slate-200 transition-all uppercase"
+          >
+            Done
+          </button>
+        </div>
+      </div>
     );
   }
 
