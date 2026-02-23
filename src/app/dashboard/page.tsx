@@ -470,12 +470,13 @@ if (isEditing) {
             // Logic for Modern Table
             const count = await getModernCount(formData.yearGraduated, formData.type);
             const finalID = generateCertificateID(
-                upperFirstName, 
-                upperSurname, 
-                formData.dateIssued, 
-                formData.type, 
-                count + 1
-            );
+				upperFirstName, 
+				upperSurname, 
+				formData.dateIssued,    // Dapat ito ang pangatlo (Source ng MM at DD)
+				formData.yearGraduated, // Dapat ito ang pang-apat (Source ng YY)
+				formData.type, 
+				count + 1
+			);
 
             // Creates a new row in 'certificates_modern'
             await saveModernCertificate({ ...baseData, certNumber: finalID });
