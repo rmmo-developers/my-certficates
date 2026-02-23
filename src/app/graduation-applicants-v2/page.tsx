@@ -178,7 +178,7 @@ if (submitted) {
           
           <div className="pt-4 border-t border-slate-50">
             <p className="text-slate-500 mb-1 font-bold text-[12px]">
-              For any concerns, please email us at:
+              For any concerns, contact us at:
             </p>
             <p className="text-emerald-600 font-bold text-[13px]">
               records.rmmo@gmail.com
@@ -195,6 +195,7 @@ if (submitted) {
       </div>
     );
   }
+
 
   return (
     <div className="min-h-screen bg-[#F8F9FF] pb-12 text-black font-sans">
@@ -362,19 +363,15 @@ if (submitted) {
                       </div>
 
                       <div className="md:col-span-4">
-						  <label className={labelClass}>Date of Birth{requiredStar}</label>
-						  <input 
-							type="text" 
-							required 
-							placeholder="DD/MMM/YYYY (e.g. 23/FEB/1995)"
-							className={`${inputClass} cursor-text`} 
-							value={formData.birthday} 
-							onChange={e => {
-							  // Optional: Add logic here to auto-format to uppercase
-							  setFormData({...formData, birthday: e.target.value.toUpperCase()})
-							}} 
-						  />
-						</div>
+                        <label className={labelClass}>Date of Birth{requiredStar}</label>
+                        <input 
+                        type="date" 
+                        required 
+                        className={`${inputClass} cursor-pointer`} 
+                        value={formData.birthday}
+                        onChange={e => setFormData({...formData, birthday: e.target.value})} 
+                        />
+                      </div>
                       <div className="md:col-span-4"><label className={labelClass}>Email Address{requiredStar}</label>
                         <input type="email" required className={inputClass} value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
                       </div>
@@ -425,28 +422,8 @@ if (submitted) {
                 <section className="bg-white rounded-[24px] p-6 md:p-8 border border-slate-100 shadow-sm">
                   <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-3"><span className="w-1 h-6 bg-emerald-500 rounded-full"></span> RMMO Service History</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-					  <label className={labelClass}>Service Started{requiredStar}</label>
-					  <input 
-						type="text" 
-						required 
-						placeholder="DD/MMM/YYYY"
-						className={`${inputClass} cursor-text`} 
-						value={formData.dateStarted} 
-						onChange={e => setFormData({...formData, dateStarted: e.target.value.toUpperCase()})} 
-					  />
-					</div>
-                    <div>
-					  <label className={labelClass}>Service Ended{requiredStar}</label>
-					  <input 
-						type="text" 
-						required 
-						placeholder="DD/MMM/YYYY"
-						className={`${inputClass} cursor-text`} 
-						value={formData.dateEnded} 
-						onChange={e => setFormData({...formData, dateEnded: e.target.value.toUpperCase()})} 
-					  />
-					</div>
+                    <div><label className={labelClass}>Service Started{requiredStar}</label><input type="date" required className={`${inputClass} cursor-pointer`} value={formData.dateStarted} onChange={e => setFormData({...formData, dateStarted: e.target.value})} /></div>
+                    <div><label className={labelClass}>Service Ended{requiredStar}</label><input type="date" required className={`${inputClass} cursor-pointer`} value={formData.dateEnded}  onChange={e => setFormData({...formData, dateEnded: e.target.value})} /></div>
                     <div className="md:col-span-2">
                       <label className={labelClass}>Position Title or Role and Committee Held{requiredStar}</label>
                       <input 
