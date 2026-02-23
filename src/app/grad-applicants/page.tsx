@@ -192,13 +192,6 @@ if (submitted) {
               records.rmmo@gmail.com
             </p>
           </div>
-
-          <button 
-            onClick={() => window.location.reload()} 
-            className="mt-8 w-full py-3 bg-slate-100 text-slate-500 rounded-xl font-bold text-[12px] hover:bg-slate-200 transition-all uppercase"
-          >
-            Done
-          </button>
         </div>
       </div>
     );
