@@ -159,9 +159,10 @@ export default function GradApplicantsPage() {
     );
   };
 
-  if (submitted) {
+
+if (submitted) {
     return (
-<div className="min-h-screen bg-[#F8F9FF] flex items-center justify-center p-6 text-black">
+      <div className="min-h-screen bg-[#F8F9FF] flex items-center justify-center p-6 text-black">
         <div className="max-w-sm w-full bg-white rounded-[28px] p-8 shadow-sm text-center border border-slate-100">
           <div className="text-emerald-600 mb-2">
             <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -185,7 +186,7 @@ export default function GradApplicantsPage() {
           
           <div className="pt-4 border-t border-slate-50">
             <p className="text-slate-500 mb-1 font-bold text-[12px]">
-              For any concerns, please email us at:
+              For any concerns, contact us at:
             </p>
             <p className="text-emerald-600 font-bold text-[13px]">
               records.rmmo@gmail.com
@@ -202,6 +203,7 @@ export default function GradApplicantsPage() {
       </div>
     );
   }
+
 
   return (
     <div className="min-h-screen bg-[#F8F9FF] pb-12 text-black font-sans">
@@ -355,15 +357,11 @@ export default function GradApplicantsPage() {
 					<div className="md:col-span-4">
 					  <label className={labelClass}>Date of Birth{requiredStar}</label>
 					  <input 
-						type="text" 
+						type="date" 
 						required 
-						placeholder="DD/MMM/YYYY (e.g. 23/FEB/1995)"
-						className={`${inputClass} cursor-text`} 
+						className={`${inputClass} cursor-pointer`} 
 						value={formData.birthday} 
-						onChange={e => {
-						  // Optional: Add logic here to auto-format to uppercase
-						  setFormData({...formData, birthday: e.target.value.toUpperCase()})
-						}} 
+						onChange={e => setFormData({...formData, birthday: e.target.value})} 
 					  />
 					</div>
                   <div className="md:col-span-4"><label className={labelClass}>Email Address{requiredStar}</label>
