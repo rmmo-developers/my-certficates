@@ -195,8 +195,6 @@ if (submitted) {
       </div>
     );
   }
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#F8F9FF] pb-12 text-black font-sans">
