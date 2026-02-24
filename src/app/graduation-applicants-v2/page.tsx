@@ -133,10 +133,10 @@ export default function GradApplicantsPage() {
   const requiredStar = <span className="text-red-600 ml-1 font-bold">*</span>;
 
 const StepTracker = ({ currentStep = 1 }) => {
-  const steps = ["Personal Data", "Review Details"];
+  const steps = ["Personal Data", "Academic Records", "RMMO Service History"];
 
   return (
-    <div className="flex items-center justify-center mb-10 w-full max-w-[300px] mx-auto">
+    <div className="flex items-center justify-center mb-10 w-full max-w-[450px] mx-auto">
       {steps.map((label, index) => {
         const stepNumber = index + 1;
         const isLast = index === steps.length - 1;
@@ -157,7 +157,7 @@ const StepTracker = ({ currentStep = 1 }) => {
 
               {/* Label positioned absolutely below circle */}
               <span
-                className={`absolute -bottom-7 whitespace-nowrap text-[11px] font-semibold transition-colors duration-300 ${
+                className={`absolute -bottom-7 whitespace-nowrap text-[10px] sm:text-[11px] font-semibold transition-colors duration-300 ${
                   currentStep >= stepNumber ? "text-blue-600" : "text-gray-500"
                 }`}
               >
@@ -180,7 +180,6 @@ const StepTracker = ({ currentStep = 1 }) => {
     </div>
   );
 };
-
 if (submitted) {
     return (
       <div className="min-h-screen bg-[#F8F9FF] flex items-center justify-center p-6 text-black">
