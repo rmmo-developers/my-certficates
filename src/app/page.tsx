@@ -217,7 +217,7 @@ function VerifyContent() {
     return (
       <div className="min-h-screen bg-[#F8F9FF] text-slate-900 font-sans flex flex-col">
         <main className="flex-1 flex flex-col items-center justify-center px-6 pb-4">
-          <div className="text-center mt-10 mb-3">
+          <div className="text-center mt-10 mb-8">
             <img 
               src="/logo.png" 
               alt="RMMO Logo" 
@@ -330,9 +330,9 @@ function VerifyContent() {
               accept="image/*"
               className="hidden"
             />
-<div id="reader-hidden" className="hidden"></div>
+            <div id="reader-hidden" className="hidden"></div>
             {isScannerOpen && (
-              <div className="fixed inset-0 bg-slate-900 z-[100] flex flex-col items-center justify-center p-6">
+              <div className="fixed inset-0 bg-slate-900/60 backdrop-blur z-[100] flex flex-col items-center justify-center p-6">
                 <style>{`
                   #reader__dashboard_section_csr span > a, 
                   #reader img[alt="Info icon"],
@@ -367,21 +367,18 @@ function VerifyContent() {
                     justify-content: center !important;
                     align-items: center !important;
                   }
-                  #reader video {
-                    border-radius: 20px !important;
-                  }
                 `}</style>
 
-                <div className="w-full max-w-2xl flex flex-col items-center">
+                <div className="w-full max-w-md bg-white rounded-[20px] overflow-hidden flex flex-col items-center py-10 px-6">
                   <div id="reader" className="w-full"></div>
                 </div>
 
                 <button
                   onClick={() => setIsScannerOpen(false)}
-                  className="mt-12 w-16 h-16 flex items-center justify-center bg-white/10 text-white border border-white/20 rounded-full shadow-2xl hover:bg-red-500 hover:text-white transition-all cursor-pointer group"
+                  className="mt-8 w-14 h-14 flex items-center justify-center bg-white text-slate-900 rounded-full shadow-xl hover:bg-red-50 hover:text-red-600 transition-all cursor-pointer group"
                   aria-label="Close Scanner"
                 >
-                  <span className="text-2xl font-light">
+                  <span className="text-2xl font-light group-hover:font-bold">
                     ✕
                   </span>
                 </button>
