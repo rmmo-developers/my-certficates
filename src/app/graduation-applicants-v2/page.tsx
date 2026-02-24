@@ -136,50 +136,56 @@ const StepTracker = ({ currentStep = 1 }) => {
   const steps = ["Personal Data", "Academic Records", "RMMO Service History"];
 
   return (
-    <div className="flex items-center justify-center mb-10 w-full max-w-[450px] mx-auto">
-      {steps.map((label, index) => {
-        const stepNumber = index + 1;
-        const isLast = index === steps.length - 1;
+    <div className="w-full max-w-[360px] mx-auto mb-20 px-2">
+      <div className="relative flex items-center justify-between">
+        {/* Background Grey Line - Centered vertically with the circles */}
+        <div className="absolute top-[18px] left-0 w-full h-[2px] bg-gray-200 z-0" />
+        
+        {/* Progress Blue Line */}
+        <div 
+          className="absolute top-[18px] left-0 h-[1px] bg-blue-600 transition-all duration-500 z-0"
+          style={{ 
+            width: currentStep === 1 ? '0%' : currentStep === 2 ? '50%' : '100%' 
+          }}
+        />
 
-        return (
-          <div key={stepNumber} className="flex items-center flex-1 last:flex-none">
-            {/* Step Circle & Label Container */}
-            <div className="flex flex-col items-center relative">
+        {steps.map((label, index) => {
+          const stepNumber = index + 1;
+          const isActive = currentStep >= stepNumber;
+          const isCurrent = currentStep === stepNumber;
+
+          return (
+            <div key={stepNumber} className="relative flex flex-col items-center z-10">
+              {/* Step Circle */}
               <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 z-10 ${
-                  currentStep >= stepNumber
-                    ? "bg-blue-600 text-white shadow-sm"
-                    : "bg-gray-200 text-gray-500"
-                }`}
+                className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-[14px] transition-all duration-300 border-2 ${
+                  isActive
+                    ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                    : "bg-white text-gray-400 border-gray-200"
+                } ${isCurrent ? "scale-110" : "scale-100"}`}
               >
                 {stepNumber}
               </div>
 
-              {/* Label positioned absolutely below circle */}
-              <span
-                className={`absolute -bottom-7 whitespace-nowrap text-[10px] sm:text-[11px] font-semibold transition-colors duration-300 ${
-                  currentStep >= stepNumber ? "text-blue-600" : "text-gray-500"
-                }`}
-              >
-                {label}
-              </span>
-            </div>
-
-            {/* Connecting Line */}
-            {!isLast && (
-              <div className="flex-1 h-[2px] mx-2 bg-gray-200 relative -top-3.5">
-                <div
-                  className="h-full bg-blue-600 transition-all duration-500"
-                  style={{ width: currentStep > stepNumber ? "100%" : "0%" }}
-                />
+              {/* Step Label - Two lines, forced narrow to prevent side overflow */}
+              <div className="absolute top-11 w-[75px] text-center leading-[0.9]">
+                <span
+                  className={`text-[9px] font-black uppercase transition-colors duration-300 ${
+                    isActive ? "text-blue-700" : "text-gray-400"
+                  }`}
+                >
+                  {label}
+                </span>
               </div>
-            )}
-          </div>
-        );
-      })}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };
+
+
 if (submitted) {
     return (
       <div className="min-h-screen bg-[#F8F9FF] flex items-center justify-center p-6 text-black">
@@ -187,32 +193,32 @@ if (submitted) {
         <div className="max-w-lg w-full bg-white rounded-[32px] p-10 md:p-12 shadow-sm text-center border border-slate-100 animate-in fade-in zoom-in-95 duration-300">
           
           {/* Green Check Icon */}
-          <div className="text-emerald-500 mb-6">
+          <div className="text-blue-500 mb-1">
             <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
           
-          <h1 className="text-[26px] font-black text-slate-900 mb-4 uppercase tracking-tight">
+          <h1 className="text-[26px] font-bold text-slate-900 mb-4 tracking-tight">
             Application Submitted
           </h1>
           
           <div className="space-y-4 mb-10">
-            <p className="text-slate-600 font-bold text-[16px] leading-relaxed">
-              We have successfully received your details, <br />
-              <span className="text-emerald-600">
+            <p className="text-slate-600 font-bold text-[16px]">
+              We have received your details, <br />
+              <span className="text-blue-600">
                 {formData.firstName} {formData.middleName} {formData.surname}{!noSuffix && formData.suffix ? ` ${formData.suffix}` : ""}
               </span>!
             </p>
 
-            <p className="text-slate-500 font-bold text-[14px] leading-relaxed max-w-xs mx-auto">
+            <p className="text-slate-500 font-bold text-[14px] max-w-xs mx-auto">
               We will notify you once we have verified your information and processed your certificate.
             </p>
           </div>
           
-          <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4 text-left">
+			<div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row items-center justify-center gap-4 text-center">
             <div>
-              <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-1">
+              <p className="text-slate-400 font-bold text-[12px] tracking-normal mb-1">
                 For any concerns, please email us at:
               </p>
               <p className="text-slate-700 font-bold text-[13px]">
@@ -329,7 +335,7 @@ if (submitted) {
         {/* STEPPER FORM */}
         {hasStarted && (
           <>
-            <StepTracker />
+            <StepTracker currentStep={currentStep} />
             
             {currentStep === 1 && (
               <form onSubmit={(e) => { e.preventDefault(); nextStep(); }} className="space-y-6 animate-in fade-in slide-in-from-right-4">
