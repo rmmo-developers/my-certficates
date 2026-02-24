@@ -131,33 +131,52 @@ export default function GradApplicantsPage() {
   const labelClass = "text-[12px] font-black text-slate-700 uppercase ml-1 mb-1.5 block tracking-wider";
   const requiredStar = <span className="text-red-600 ml-1 font-bold">*</span>;
 
-  const StepTracker = () => {
-    // Only show tracker if we are on the form or review steps
-    if (currentStep < 3) return null;
+ const StepTracker = ({ currentStep = 1 }) => {
+  const steps = [
+    { id: 1, label: "Personal Data" },
+    { id: 2, label: "Review Details" },
+  ];
 
-    return (
-      <div className="flex items-center justify-between mb-6 max-w-[280px] mx-auto">
-        {[1, 2].map((step) => {
-            // Map actual UI steps (1, 2) to currentStep state (3, 4)
-            const activeStep = currentStep - 2;
-            return (
-              <div key={step} className="flex items-center">
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300 ${
-                  activeStep >= step ? "bg-blue-700 text-white shadow-md scale-105" : "bg-slate-200 text-slate-400"
-                }`}>
-                  {step}
-                </div>
-                {step < 2 && (
-                  <div className={`w-24 h-0.5 mx-1 transition-all duration-300 ${
-                    activeStep > step ? "bg-blue-700" : "bg-slate-200"
-                  }`} />
-                )}
-              </div>
-            );
-        })}
-      </div>
-    );
-  };
+  return (
+    <div className="flex items-center justify-center mb-10 w-full max-w-sm mx-auto">
+      {steps.map((step, index) => (
+        <React.Fragment key={step.id}>
+          {/* Step Circle and Label Container */}
+          <div className="flex flex-col items-center relative">
+            <div
+              className={`w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm transition-all duration-300 z-10 ${
+                currentStep >= step.id
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "bg-gray-200 text-gray-600"
+              }`}
+            >
+              {step.id}
+            </div>
+            
+            {/* Label positioned below circle */}
+            <span 
+              className={`absolute -bottom-7 whitespace-nowrap text-xs font-medium transition-colors duration-300 ${
+                currentStep >= step.id ? "text-blue-600" : "text-gray-500"
+              }`}
+            >
+              {step.label}
+            </span>
+          </div>
+
+          {/* Connecting Line */}
+          {index < steps.length - 1 && (
+            <div className="flex-grow mx-2 h-[2px] bg-gray-200 max-w-[60px] relative -top-3.5">
+              <div 
+                className="h-full bg-blue-600 transition-all duration-500"
+                style={{ width: currentStep > step.id ? "100%" : "0%" }}
+              />
+            </div>
+          )}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+};
 
 
 if (submitted) {
