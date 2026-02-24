@@ -131,49 +131,52 @@ export default function GradApplicantsPage() {
   const labelClass = "text-[12px] font-black text-slate-700 uppercase ml-1 mb-1.5 block tracking-wider";
   const requiredStar = <span className="text-red-600 ml-1 font-bold">*</span>;
 
- const StepTracker = ({ currentStep = 1 }) => {
-  const steps = [
-    { id: 1, label: "Personal Data" },
-    { id: 2, label: "Review Details" },
-  ];
+const StepTracker = ({ currentStep = 1 }) => {
+  const steps = ["Personal Data", "Review Details"];
 
   return (
-    <div className="flex items-center justify-center mb-10 w-full max-w-sm mx-auto">
-      {steps.map((step, index) => (
-        <React.Fragment key={step.id}>
-          {/* Step Circle and Label Container */}
-          <div className="flex flex-col items-center relative">
-            <div
-              className={`w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm transition-all duration-300 z-10 ${
-                currentStep >= step.id
-                  ? "bg-blue-600 text-white shadow-sm"
-                  : "bg-gray-200 text-gray-600"
-              }`}
-            >
-              {step.id}
-            </div>
-            
-            {/* Label positioned below circle */}
-            <span 
-              className={`absolute -bottom-7 whitespace-nowrap text-xs font-medium transition-colors duration-300 ${
-                currentStep >= step.id ? "text-blue-600" : "text-gray-500"
-              }`}
-            >
-              {step.label}
-            </span>
-          </div>
+    <div className="flex items-center justify-center mb-10 w-full max-w-[320px] mx-auto">
+      {steps.map((label, index) => {
+        const stepNumber = index + 1;
+        const isLast = index === steps.length - 1;
 
-          {/* Connecting Line */}
-          {index < steps.length - 1 && (
-            <div className="flex-grow mx-2 h-[2px] bg-gray-200 max-w-[60px] relative -top-3.5">
-              <div 
-                className="h-full bg-blue-600 transition-all duration-500"
-                style={{ width: currentStep > step.id ? "100%" : "0%" }}
-              />
+        return (
+          <div key={stepNumber} className="flex items-center flex-1 last:flex-none">
+            {/* Step Circle and Label Group */}
+            <div className="flex flex-col items-center relative">
+              <div
+                className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 z-10 ${
+                  currentStep >= stepNumber
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "bg-gray-200 text-gray-500"
+                }`}
+              >
+                {stepNumber}
+              </div>
+
+              {/* Label positioned below the circle */}
+              <span
+                className={`absolute -bottom-7 whitespace-nowrap text-xs font-semibold transition-colors duration-300 ${
+                  currentStep >= stepNumber ? "text-blue-600" : "text-gray-400"
+                }`}
+              >
+                {label}
+              </span>
             </div>
-          )}
-        </React.Fragment>
-      ))}
+
+            {/* Connecting Line */}
+            {!isLast && (
+              <div className="flex-1 h-0.5 mx-2 bg-gray-200 relative -top-3.5">
+                <div
+                  className={`h-full bg-blue-600 transition-all duration-500 ${
+                    currentStep > stepNumber ? "w-full" : "w-0"
+                  }`}
+                />
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 };
