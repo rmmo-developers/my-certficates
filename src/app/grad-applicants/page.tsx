@@ -163,7 +163,9 @@ export default function GradApplicantsPage() {
 if (submitted) {
     return (
       <div className="min-h-screen bg-[#F8F9FF] flex items-center justify-center p-6 text-black">
-        <div className="max-w-sm w-full bg-white rounded-[32px] p-10 shadow-sm text-center border border-slate-100 animate-in fade-in zoom-in-95 duration-300">
+        {/* Increased width from max-w-sm to max-w-lg */}
+        <div className="max-w-lg w-full bg-white rounded-[32px] p-10 md:p-12 shadow-sm text-center border border-slate-100 animate-in fade-in zoom-in-95 duration-300">
+          
           {/* Green Check Icon */}
           <div className="text-emerald-500 mb-6">
             <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -171,38 +173,33 @@ if (submitted) {
             </svg>
           </div>
           
-          <h1 className="text-[24px] font-black text-slate-900 mb-2 uppercase tracking-tight">
+          <h1 className="text-[26px] font-black text-slate-900 mb-4 uppercase tracking-tight">
             Application Submitted
           </h1>
           
-          <div className="space-y-4 mb-8">
-            <p className="text-slate-600 font-bold text-[14px] leading-relaxed">
-              Your details have been successfully received, <br />
-              <span className="text-emerald-600 uppercase">
-                {formData.firstName} {formData.middleName} {formData.surname} {!noSuffix && formData.suffix ? formData.suffix : ""}
+          <div className="space-y-4 mb-10">
+            <p className="text-slate-600 font-bold text-[16px] leading-relaxed">
+              We have successfully received your details, <br />
+              <span className="text-emerald-600">
+                {formData.firstName} {formData.middleName} {formData.surname}{!noSuffix && formData.suffix ? ` ${formData.suffix}` : ""}
               </span>!
             </p>
 
-            <p className="text-slate-500 font-medium text-[13px] leading-relaxed">
-              We will notify you once we have verified your details and processed your certificate.
+            <p className="text-slate-500 font-bold text-[14px] leading-relaxed max-w-xs mx-auto">
+              We will notify you once we have verified your information and processed your certificate.
             </p>
           </div>
           
-          <div className="pt-6 border-t border-slate-100">
-            <p className="text-slate-400 mb-2 font-black text-[10px] uppercase tracking-widest">
-              Support & Inquiries
-            </p>
-            <p className="text-slate-700 font-bold text-[13px]">
-              records.rmmo@gmail.com
-            </p>
+          <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4 text-left">
+            <div>
+              <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-1">
+                For any concerns, please email us at:
+              </p>
+              <p className="text-slate-700 font-bold text-[13px]">
+                records.rmmo@gmail.com
+              </p>
+            </div>
           </div>
-
-          <button 
-            onClick={() => window.location.reload()} 
-            className="mt-8 w-full py-4 bg-slate-900 text-white rounded-2xl font-bold text-[13px] hover:bg-slate-800 transition-all uppercase tracking-wide"
-          >
-            Back to Home
-          </button>
         </div>
       </div>
     );
