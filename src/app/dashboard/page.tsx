@@ -668,46 +668,69 @@ export default function DashboardPage() {
       )}
     </main>
 
-      {isPreviewModalOpen && selectedRecord && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center md:p-4">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsPreviewModalOpen(false)}></div>
-          <div className="relative w-full h-full md:h-auto md:max-w-2xl bg-white md:rounded-[28px] shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden flex flex-col max-h-screen md:max-h-[90vh]">
-             <div className="p-6 flex justify-between items-center border-b border-slate-100 bg-[#F3F6FC]">
-                <h3 className="text-xl font-medium">Record Preview</h3>
-                <button onClick={() => setIsPreviewModalOpen(false)} className="cursor-pointer w-10 h-10 flex items-center justify-center hover:bg-slate-200 active:bg-slate-300 rounded-full transition-colors">✕</button>
-             </div>
-             <div className="flex-1 overflow-y-auto p-6 md:p-10">
-                <div onClick={() => setIsFullscreen(true)} className="aspect-video bg-slate-100 rounded-[24px] mb-8 overflow-hidden border border-slate-200 flex items-center justify-center relative group cursor-pointer active:scale-[0.98] transition-all">
-                    {selectedRecord.google_photos_link ? (
-                        <>
-                          <img src={getImageUrl(selectedRecord.google_photos_link)} className="w-full h-full object-contain p-2" alt="Preview" />
-                          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><ZoomIcon /></div>
-                        </>
-                    ) : <p className="text-slate-400 font-medium">No Image attached</p>}
-                </div>
-                <div className="space-y-4 text-[16px] text-slate-700">
-                    <p><strong className="text-slate-400 font-bold uppercase text-[12px] block mb-1">Full Name</strong> {selectedRecord.issued_to}</p>
-                    <p><strong className="text-slate-400 font-bold uppercase text-[12px] block mb-1">ID Number</strong> {selectedRecord.cert_number}</p>
-                    <p><strong className="text-slate-400 font-bold uppercase text-[12px] block mb-1">Document Type</strong> {selectedRecord.type}</p>
-                    <p><strong className="text-slate-400 font-bold uppercase text-[12px] block mb-1">Status</strong> {selectedRecord.validity || 'VALID'}</p>
-                    <p><strong className="text-slate-400 font-bold uppercase text-[12px] block mb-1">Academic Year</strong> {selectedRecord.school_year}</p>
-                    <p><strong className="text-slate-400 font-bold uppercase text-[12px] block mb-1">Date Issued</strong> {formatDateCustom(selectedRecord.date_issued)}</p>
-                </div>
-             </div>
-             <div className="p-6 bg-slate-50 flex flex-col md:flex-row gap-3">
-                <button onClick={() => { setQrModalRecord(selectedRecord); }} className="cursor-pointer flex-1 py-3.5 bg-white border border-slate-200 text-slate-900 font-medium rounded-xl hover:bg-slate-100 active:bg-slate-200 transition-all">Share QR Code or Link</button>
-                <button onClick={() => handleEditClick(selectedRecord)} className="cursor-pointer flex-1 py-3.5 bg-blue-700 text-white font-medium rounded-xl hover:bg-blue-800 active:bg-blue-900 active:scale-[0.98] transition-all shadow-md">Edit Record</button>
-             </div>
+{/* Center Preview Modal (Desktop) / Fullscreen (Mobile) */}
+{isPreviewModalOpen && selectedRecord && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center md:p-4">
+    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsPreviewModalOpen(false)}></div>
+    <div className="relative w-full h-full md:h-auto md:max-w-2xl bg-white md:rounded-[28px] shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden flex flex-col max-h-screen md:max-h-[90vh]">
+       <div className="p-6 flex justify-between items-center border-b border-slate-100 bg-[#F3F6FC]">
+          <h3 className="text-xl font-medium">Record Preview</h3>
+          <button onClick={() => setIsPreviewModalOpen(false)} className="cursor-pointer w-10 h-10 flex items-center justify-center hover:bg-slate-200 active:bg-slate-300 rounded-full transition-colors">✕</button>
+       </div>
+       
+       <div className="flex-1 overflow-y-auto p-6 md:p-10">
+          {/* IMAGE CONTAINER WITH CONDITIONAL FULLSCREEN LOGIC */}
+          <div 
+              onClick={() => {
+                if (selectedRecord.google_photos_link) {
+                  setIsFullscreen(true);
+                }
+              }}
+              className={`aspect-video bg-slate-100 rounded-[24px] mb-8 overflow-hidden border border-slate-200 flex items-center justify-center relative group transition-all ${
+                selectedRecord.google_photos_link ? 'cursor-pointer active:scale-[0.98]' : 'cursor-default'
+              }`}
+          >
+              {selectedRecord.google_photos_link ? (
+                  <>
+                    <img 
+                      src={getImageUrl(selectedRecord.google_photos_link)} 
+                      className="w-full h-full object-contain p-2" 
+                      alt="Preview" 
+                    />
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                       <ZoomIcon />
+                    </div>
+                  </>
+              ) : (
+                  <p className="text-slate-400 font-medium">No Image attached</p>
+              )}
           </div>
-        </div>
-      )}
 
-      {isFullscreen && selectedRecord && (
-        <div className="fixed inset-0 z-[300] bg-black flex items-center justify-center p-4">
-            <button onClick={() => setIsFullscreen(false)} className="cursor-pointer absolute top-8 right-8 text-white bg-white/10 p-4 rounded-full hover:bg-white/20 active:bg-white/30 transition-all z-[310]">✕</button>
-            <img src={getImageUrl(selectedRecord.google_photos_link)} className="max-w-full max-h-full object-contain" alt="Full View" />
-        </div>
-      )}
+          <div className="space-y-4 text-[16px] text-slate-700">
+              <p><strong className="text-slate-400 font-bold uppercase text-[12px] block mb-1">Full Name</strong> {selectedRecord.issued_to}</p>
+              <p><strong className="text-slate-400 font-bold uppercase text-[12px] block mb-1">ID Number</strong> {selectedRecord.cert_number}</p>
+              <p><strong className="text-slate-400 font-bold uppercase text-[12px] block mb-1">Document Type</strong> {selectedRecord.type}</p>
+              <p><strong className="text-slate-400 font-bold uppercase text-[12px] block mb-1">Status</strong> {selectedRecord.validity || 'VALID'}</p>
+              <p><strong className="text-slate-400 font-bold uppercase text-[12px] block mb-1">Academic Year</strong> {selectedRecord.school_year}</p>
+              <p><strong className="text-slate-400 font-bold uppercase text-[12px] block mb-1">Date Issued</strong> {formatDateCustom(selectedRecord.date_issued)}</p>
+          </div>
+       </div>
+
+       <div className="p-6 bg-slate-50 flex flex-col md:flex-row gap-3">
+          <button onClick={() => { setQrModalRecord(selectedRecord); }} className="cursor-pointer flex-1 py-3.5 bg-white border border-slate-200 text-slate-900 font-medium rounded-xl hover:bg-slate-100 active:bg-slate-200 transition-all">Share QR Code or Link</button>
+          <button onClick={() => handleEditClick(selectedRecord)} className="cursor-pointer flex-1 py-3.5 bg-blue-700 text-white font-medium rounded-xl hover:bg-blue-800 active:bg-blue-900 active:scale-[0.98] transition-all shadow-md">Edit Record</button>
+       </div>
+    </div>
+  </div>
+)}
+
+{/* Full Screen Image Modal - ONLY SHOWS IF LINK EXISTS */}
+{isFullscreen && selectedRecord && selectedRecord.google_photos_link && (
+  <div className="fixed inset-0 z-[300] bg-black flex items-center justify-center p-4">
+      <button onClick={() => setIsFullscreen(false)} className="cursor-pointer absolute top-8 right-8 text-white bg-white/10 p-4 rounded-full hover:bg-white/20 active:bg-white/30 transition-all z-[310]">✕</button>
+      <img src={getImageUrl(selectedRecord.google_photos_link)} className="max-w-full max-h-full object-contain" alt="Full View" />
+  </div>
+)}
 
       {isRegistrantModalOpen && selectedRegistrant && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
@@ -799,7 +822,7 @@ export default function DashboardPage() {
                       <div className="w-10 h-10 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center"><SearchIcon /></div>
                       <div>
                         <h4 className="text-xl font-bold">Review Details</h4>
-                        <p className="text-sm text-slate-500">Pakisuri kung tama ang lahat ng impormasyon bago i-save.</p>
+                        <p className="text-sm text-slate-500">Please review all details before saving.</p>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white border border-slate-200 rounded-[24px] p-6 md:p-8">

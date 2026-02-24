@@ -217,7 +217,7 @@ function VerifyContent() {
     return (
       <div className="min-h-screen bg-[#F8F9FF] text-slate-900 font-sans flex flex-col">
         <main className="flex-1 flex flex-col items-center justify-center px-6 pb-4">
-          <div className="text-center mt-10 mb-8">
+          <div className="text-center mt-10 mb-3">
             <img 
               src="/logo.png" 
               alt="RMMO Logo" 
@@ -635,7 +635,7 @@ function VerifyContent() {
             </div>
             <div className="mt-3 px-2 flex justify-between items-center shrink-0">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                Digital Hash: {result.cert_number?.split("-")[1]}
+                Digital Document ID: {result.cert_number?.split("-")[1]}
               </span>
             </div>
           </div>
