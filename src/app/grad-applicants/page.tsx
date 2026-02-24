@@ -135,14 +135,14 @@ const StepTracker = ({ currentStep = 1 }) => {
   const steps = ["Personal Data", "Review Details"];
 
   return (
-    <div className="flex items-center justify-center mb-10 w-full max-w-[320px] mx-auto">
+    <div className="flex items-center justify-center mb-10 w-full max-w-[300px] mx-auto">
       {steps.map((label, index) => {
         const stepNumber = index + 1;
         const isLast = index === steps.length - 1;
 
         return (
           <div key={stepNumber} className="flex items-center flex-1 last:flex-none">
-            {/* Step Circle and Label Group */}
+            {/* Step Circle & Label Container */}
             <div className="flex flex-col items-center relative">
               <div
                 className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 z-10 ${
@@ -154,10 +154,10 @@ const StepTracker = ({ currentStep = 1 }) => {
                 {stepNumber}
               </div>
 
-              {/* Label positioned below the circle */}
+              {/* Label positioned absolutely below circle */}
               <span
-                className={`absolute -bottom-7 whitespace-nowrap text-xs font-semibold transition-colors duration-300 ${
-                  currentStep >= stepNumber ? "text-blue-600" : "text-gray-400"
+                className={`absolute -bottom-7 whitespace-nowrap text-[11px] font-semibold transition-colors duration-300 ${
+                  currentStep >= stepNumber ? "text-blue-600" : "text-gray-500"
                 }`}
               >
                 {label}
@@ -166,11 +166,10 @@ const StepTracker = ({ currentStep = 1 }) => {
 
             {/* Connecting Line */}
             {!isLast && (
-              <div className="flex-1 h-0.5 mx-2 bg-gray-200 relative -top-3.5">
+              <div className="flex-1 h-[2px] mx-2 bg-gray-200 relative -top-3.5">
                 <div
-                  className={`h-full bg-blue-600 transition-all duration-500 ${
-                    currentStep > stepNumber ? "w-full" : "w-0"
-                  }`}
+                  className="h-full bg-blue-600 transition-all duration-500"
+                  style={{ width: currentStep > stepNumber ? "100%" : "0%" }}
                 />
               </div>
             )}
@@ -180,7 +179,6 @@ const StepTracker = ({ currentStep = 1 }) => {
     </div>
   );
 };
-
 
 if (submitted) {
     return (
