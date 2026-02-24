@@ -102,7 +102,8 @@ export default function DashboardPage() {
   const [fetching, setFetching] = useState(true);
   const [records, setRecords] = useState<any[]>([]);
   const [registrants, setRegistrants] = useState<any[]>([]); 
-  const [activeTab, setActiveTab] = useState<"certificates" | "registrants">("certificates"); 
+  // Find the activeTab state and update it:
+const [activeTab, setActiveTab] = useState<"modern" | "legacy" | "registrants">("modern");
   const [pendingRegistrantId, setPendingRegistrantId] = useState<number | null>(null); 
   const [userRole, setUserRole] = useState<string>("encoder");
   const [isLegacyMode, setIsLegacyMode] = useState(false);
@@ -251,28 +252,40 @@ export default function DashboardPage() {
     router.push("/login");
   };
 
-  const filteredRecords = useMemo(() => {
-    let result = [...records];
-    if (searchTerm) {
-      const lowerSearch = searchTerm.toLowerCase();
-      result = result.filter(rec => 
-        rec.issued_to?.toLowerCase().includes(lowerSearch) ||
-        rec.cert_number?.toLowerCase().includes(lowerSearch) ||
-        rec.school_year?.toLowerCase().includes(lowerSearch) ||
-        rec.year_graduated?.toLowerCase().includes(lowerSearch)
-      );
-    }
-    if (filterType !== "All Types") result = result.filter(rec => rec.type === filterType);
-    if (filterStatus !== "All Status") result = result.filter(rec => rec.validity === filterStatus);
-    
-    result.sort((a, b) => {
-        const yearA = parseInt(a.year_graduated) || 0;
-        const yearB = parseInt(b.year_graduated) || 0;
-        return sortByYear === "Newest First" ? yearB - yearA : yearA - yearB;
-    });
+const filteredRecords = useMemo(() => {
+  let result = [...records];
+  
+  // First, filter by the active tab type
+  if (activeTab === "modern") {
+    result = result.filter(rec => rec.isModern);
+  } else if (activeTab === "legacy") {
+    result = result.filter(rec => !rec.isModern);
+  }
 
-    return result;
-  }, [records, searchTerm, filterType, filterStatus, sortByYear]);
+  // Then apply Search
+  if (searchTerm) {
+    const lowerSearch = searchTerm.toLowerCase();
+    result = result.filter(rec => 
+      rec.issued_to?.toLowerCase().includes(lowerSearch) ||
+      rec.cert_number?.toLowerCase().includes(lowerSearch) ||
+      rec.school_year?.toLowerCase().includes(lowerSearch) ||
+      rec.year_graduated?.toLowerCase().includes(lowerSearch)
+    );
+  }
+
+  // Filter by Type and Status
+  if (filterType !== "All Types") result = result.filter(rec => rec.type === filterType);
+  if (filterStatus !== "All Status") result = result.filter(rec => rec.validity === filterStatus);
+  
+  // Sort
+  result.sort((a, b) => {
+      const yearA = parseInt(a.year_graduated) || 0;
+      const yearB = parseInt(b.year_graduated) || 0;
+      return sortByYear === "Newest First" ? yearB - yearA : yearA - yearB;
+  });
+
+  return result;
+}, [records, searchTerm, filterType, filterStatus, sortByYear, activeTab]);
 
   const filteredRegistrants = useMemo(() => {
     if (!searchTerm) return registrants;
@@ -511,162 +524,200 @@ export default function DashboardPage() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 md:px-8 py-8">
-        <header className="flex flex-row md:flex-row items-start md:items-center justify-between gap-4 mb-10">
-          <div className="flex-1">
-            <h2 className="text-2xl md:text-4xl font-normal text-slate-900 mb-1 md:mb-2">Registry Management</h2>
-            <p className="text-sm md:text-base text-slate-500">Manage certificates and online registrants</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button onClick={refreshData} disabled={fetching} className="cursor-pointer flex bg-white text-slate-600 border border-slate-200 px-3 py-3 md:px-4 md:py-3.5 rounded-[12px] md:rounded-[16px] text-[15px] font-medium hover:bg-slate-50 active:scale-95 transition-all items-center gap-2 shadow-sm disabled:opacity-50">
-              <div className={fetching ? "animate-spin" : ""}><RefreshIcon /></div>
-            </button>
-            {!fetching && activeTab === "certificates" && (
-              <button onClick={() => { setIsLegacyMode(false); setIsReviewing(false); setIsModalOpen(true); }} className="hidden md:flex cursor-pointer bg-blue-700 text-white pl-4 pr-6 py-3.5 rounded-[16px] text-[15px] font-medium hover:bg-blue-800 active:bg-blue-900 active:scale-95 transition-all items-center gap-2 shadow-md">
-                <PlusIcon /> Enroll Certificate
-              </button>
-            )}
-          </div>
-        </header>
+     <main className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+  <header className="flex flex-row md:flex-row items-start md:items-center justify-between gap-4 mb-10">
+    <div className="flex-1">
+      <h2 className="text-2xl md:text-4xl font-normal text-slate-900 mb-1 md:mb-2">Registry Management</h2>
+      <p className="text-sm md:text-base text-slate-500">Manage certificates and online registrants</p>
+    </div>
+    <div className="flex items-center gap-3">
+      <button onClick={refreshData} disabled={fetching} className="cursor-pointer flex bg-white text-slate-600 border border-slate-200 px-3 py-3 md:px-4 md:py-3.5 rounded-[12px] md:rounded-[16px] text-[15px] font-medium hover:bg-slate-50 active:scale-95 transition-all items-center gap-2 shadow-sm disabled:opacity-50">
+        <div className={fetching ? "animate-spin" : ""}><RefreshIcon /></div>
+      </button>
+      
+      {!fetching && (activeTab === "modern" || activeTab === "legacy") && (
+        <button 
+          onClick={() => { 
+            setIsLegacyMode(activeTab === "legacy"); 
+            setIsReviewing(false); 
+            setIsModalOpen(true); 
+          }} 
+          className="hidden md:flex cursor-pointer bg-blue-700 text-white pl-4 pr-6 py-3.5 rounded-[16px] text-[15px] font-medium hover:bg-blue-800 active:scale-95 transition-all items-center gap-2 shadow-md"
+        >
+          <PlusIcon /> Enroll {activeTab === "modern" ? "Modern" : "Legacy"} Certificate
+        </button>
+      )}
+    </div>
+  </header>
 
-        <div className="flex border-b border-slate-200 mb-8 gap-8 overflow-x-auto no-scrollbar">
-            <button onClick={() => setActiveTab("certificates")} className={`pb-4 text-[15px] font-bold transition-all cursor-pointer whitespace-nowrap relative ${activeTab === 'certificates' ? 'text-blue-700' : 'text-slate-500 hover:text-slate-700'}`}>
-                Certificate Records ({records.length})
-                {activeTab === 'certificates' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-700 rounded-t-full"></div>}
-            </button>
-            <button onClick={() => setActiveTab("registrants")} className={`pb-4 text-[15px] font-bold transition-all cursor-pointer whitespace-nowrap relative ${activeTab === 'registrants' ? 'text-blue-700' : 'text-slate-500 hover:text-slate-700'}`}>
-                Pending Records ({registrants.length})
-                {activeTab === 'registrants' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-700 rounded-t-full"></div>}
-            </button>
+  {/* --- TABS NAVIGATION --- */}
+  <div className="flex border-b border-slate-200 mb-8 gap-8 overflow-x-auto no-scrollbar">
+      <button onClick={() => setActiveTab("modern")} className={`pb-4 text-[15px] font-bold transition-all cursor-pointer whitespace-nowrap relative ${activeTab === 'modern' ? 'text-blue-700' : 'text-slate-500 hover:text-slate-700'}`}>
+          Modern Records ({records.filter(r => r.isModern).length})
+          {activeTab === 'modern' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-700 rounded-t-full"></div>}
+      </button>
+      
+      <button onClick={() => setActiveTab("legacy")} className={`pb-4 text-[15px] font-bold transition-all cursor-pointer whitespace-nowrap relative ${activeTab === 'legacy' ? 'text-blue-700' : 'text-slate-500 hover:text-slate-700'}`}>
+          Legacy Records ({records.filter(r => !r.isModern).length})
+          {activeTab === 'legacy' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-700 rounded-t-full"></div>}
+      </button>
+
+      <button onClick={() => setActiveTab("registrants")} className={`pb-4 text-[15px] font-bold transition-all cursor-pointer whitespace-nowrap relative ${activeTab === 'registrants' ? 'text-blue-700' : 'text-slate-500 hover:text-slate-700'}`}>
+          Pending Applications ({registrants.length})
+          {activeTab === 'registrants' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-700 rounded-t-full"></div>}
+      </button>
+  </div>
+
+  {/* --- MOBILE FLOATING BUTTON --- */}
+  {!fetching && (activeTab === "modern" || activeTab === "legacy") && (
+    <button 
+      onClick={() => { 
+        setIsLegacyMode(activeTab === "legacy"); 
+        setIsReviewing(false); 
+        setIsModalOpen(true); 
+      }} 
+      className="md:hidden fixed bottom-6 right-6 z-50 w-14 h-14 bg-blue-700 text-white rounded-full shadow-2xl flex items-center justify-center active:bg-blue-800 active:scale-90 transition-all cursor-pointer"
+    >
+      <PlusIcon />
+    </button>
+  )}
+
+  {/* --- FILTERS SECTION --- */}
+  {(activeTab === "modern" || activeTab === "legacy") && (
+      <div className="mb-8">
+        <button onClick={() => setIsFilterExpanded(!isFilterExpanded)} className="md:hidden w-full flex items-center justify-between p-4 bg-white border border-slate-200 rounded-2xl mb-2 shadow-sm">
+          <span className="text-[14px] font-bold text-slate-700">Filter & Sort</span>
+          <div className={`transition-transform duration-200 ${isFilterExpanded ? 'rotate-180' : ''}`}><ChevronDownIcon /></div>
+        </button>
+        <div className={`${isFilterExpanded ? 'flex' : 'hidden md:flex'} flex-wrap items-center gap-4 animate-in fade-in slide-in-from-top-2 duration-200`}>
+            <div className="flex flex-col w-full md:w-auto">
+              <span className="text-[11px] font-bold text-slate-400 uppercase ml-2 mb-1">Type</span>
+              <select className="w-full px-4 py-2.5 bg-[#EEF1F9] border-none rounded-xl text-[14px] font-medium text-slate-700 outline-none hover:bg-slate-200 active:bg-slate-300 transition-colors cursor-pointer" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+                  <option value="All Types">All Types</option>
+                  <option value="Certificate of Completion">Certificate of Completion</option>
+                  <option value="Certificate of Appreciation">Certificate of Appreciation</option>
+                  <option value="Awards Certificate">Awards Certificate</option>
+              </select>
+            </div>
+            <div className="flex flex-col w-full md:w-auto">
+              <span className="text-[11px] font-bold text-slate-400 uppercase ml-2 mb-1">Status</span>
+              <select className="w-full px-4 py-2.5 bg-[#EEF1F9] border-none rounded-xl text-[14px] font-medium text-slate-700 outline-none hover:bg-slate-200 active:bg-slate-300 transition-colors cursor-pointer" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+                  <option value="All Status">All Status</option>
+                  <option value="VALID">VALID</option>
+                  <option value="REVOKED">REVOKED</option>
+                  <option value="PENDING">PENDING</option>
+              </select>
+            </div>
+            <div className="flex flex-col w-full md:w-auto">
+              <span className="text-[11px] font-bold text-slate-400 uppercase ml-2 mb-1">Sort by Year</span>
+              <select className="w-full px-4 py-2.5 bg-[#EEF1F9] border-none rounded-xl text-[14px] font-medium text-slate-700 outline-none hover:bg-slate-200 active:bg-slate-300 transition-colors cursor-pointer" value={sortByYear} onChange={(e) => setSortByYear(e.target.value)}>
+                  <option value="Newest First">Newest First</option>
+                  <option value="Oldest First">Oldest First</option>
+              </select>
+            </div>
+            <span className="hidden md:block ml-auto text-[14px] font-medium text-slate-500 bg-white px-4 py-2 rounded-full border border-slate-200">
+              {filteredRecords.length} records
+            </span>
         </div>
+      </div>
+  )}
 
-        {!fetching && activeTab === "certificates" && (
-          <button onClick={() => { setIsLegacyMode(false); setIsReviewing(false); setIsModalOpen(true); }} className="md:hidden fixed bottom-6 right-6 z-50 w-14 h-14 bg-blue-700 text-white rounded-full shadow-2xl flex items-center justify-center active:bg-blue-800 active:scale-90 transition-all cursor-pointer">
-            <PlusIcon />
-          </button>
-        )}
-
-        {activeTab === "certificates" && (
-            <div className="mb-8">
-              <button onClick={() => setIsFilterExpanded(!isFilterExpanded)} className="md:hidden w-full flex items-center justify-between p-4 bg-white border border-slate-200 rounded-2xl mb-2">
-                <span className="text-[14px] font-bold text-slate-700">Filter & Sort</span>
-                <div className={`transition-transform duration-200 ${isFilterExpanded ? 'rotate-180' : ''}`}><ChevronDownIcon /></div>
-              </button>
-              <div className={`${isFilterExpanded ? 'flex' : 'hidden md:flex'} flex-wrap items-center gap-4 animate-in fade-in slide-in-from-top-2 duration-200`}>
-                  <div className="flex flex-col w-full md:w-auto">
-                    <span className="text-[11px] font-bold text-slate-400 uppercase ml-2 mb-1">Type</span>
-                    <select className="w-full px-4 py-2.5 bg-[#EEF1F9] border-none rounded-xl text-[14px] font-medium text-slate-700 outline-none hover:bg-slate-200 active:bg-slate-300 transition-colors cursor-pointer" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
-                        <option>All Types</option>
-                        <option>Certificate of Completion</option>
-                        <option>Certificate of Appreciation</option>
-                        <option>Awards Certificate</option>
-                    </select>
-                  </div>
-                  <div className="flex flex-col w-full md:w-auto">
-                    <span className="text-[11px] font-bold text-slate-400 uppercase ml-2 mb-1">Status</span>
-                    <select className="w-full px-4 py-2.5 bg-[#EEF1F9] border-none rounded-xl text-[14px] font-medium text-slate-700 outline-none hover:bg-slate-200 active:bg-slate-300 transition-colors cursor-pointer" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-                        <option>All Status</option>
-                        <option>VALID</option>
-                        <option>REVOKED</option>
-                        <option>PENDING</option>
-                    </select>
-                  </div>
-                  <div className="flex flex-col w-full md:w-auto">
-                    <span className="text-[11px] font-bold text-slate-400 uppercase ml-2 mb-1">Sort by Year</span>
-                    <select className="w-full px-4 py-2.5 bg-[#EEF1F9] border-none rounded-xl text-[14px] font-medium text-slate-700 outline-none hover:bg-slate-200 active:bg-slate-300 transition-colors cursor-pointer" value={sortByYear} onChange={(e) => setSortByYear(e.target.value)}>
-                        <option>Newest First</option>
-                        <option>Oldest First</option>
-                    </select>
-                  </div>
-                  <span className="hidden md:block ml-auto text-[14px] font-medium text-slate-500 bg-white px-4 py-2 rounded-full border border-slate-200">{filteredRecords.length} records</span>
+  {/* --- LIST VIEW --- */}
+  {fetching ? (
+    <div className="flex justify-center py-20">
+      <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-700 rounded-full animate-spin"></div>
+    </div>
+  ) : (
+    <div className="flex flex-col gap-2">
+      {(activeTab === "modern" || activeTab === "legacy") ? (
+        filteredRecords.map((rec: any) => (
+          <div 
+            key={`${rec.isModern ? 'm' : 'l'}-${rec.id}`}
+            onClick={() => { setSelectedRecord(rec); setIsPreviewModalOpen(true); }}
+            className="bg-white rounded-2xl p-4 md:p-5 border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4 hover:shadow-md hover:border-blue-200 active:bg-slate-50 transition-all cursor-pointer group"
+          >
+            <div className="flex-1 flex items-start gap-3 overflow-hidden">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-[16px] md:text-[17px] font-bold text-slate-900 truncate">
+                    {rec.issued_to} {rec.suffix || ""}
+                  </p>
+                  <span className={`flex-shrink-0 text-[9px] px-2 py-0.5 rounded-md font-black uppercase ${rec.isModern ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
+                    {rec.isModern ? 'New' : 'Legacy'}
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
+                  <span className="text-slate-500 font-medium">{rec.type}</span>
+                  <span className="hidden md:inline w-1 h-1 bg-slate-300 rounded-full"></span>
+                  <span className="font-mono text-blue-600 font-bold">{rec.cert_number}</span>
+                  {!rec.isModern && (
+                    <>
+                      <span className="hidden md:inline w-1 h-1 bg-slate-300 rounded-full"></span>
+                      <span className="text-amber-600 font-bold italic text-[11px]">Archive Entry</span>
+                    </>
+                  )}
+                  <span className="inline md:hidden text-slate-400 font-bold">• SY {rec.school_year}</span>
+                </div>
               </div>
             </div>
-        )}
-
-        {fetching ? (
-            <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-slate-200 border-t-blue-700 rounded-full animate-spin"></div></div>
-        ) : (
-          <div className="flex flex-col gap-2">
-              {activeTab === "certificates" ? (
-                  filteredRecords.map((rec: any) => (
-                      <div 
-                          key={`${rec.isModern ? 'm' : 'l'}-${rec.id}`}
-                          onClick={() => { setSelectedRecord(rec); setIsPreviewModalOpen(true); }}
-                          className="bg-white rounded-2xl p-4 md:p-5 border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4 hover:shadow-md hover:border-blue-200 active:bg-slate-50 transition-all cursor-pointer group"
-                      >
-                          <div className="flex-1 flex items-start gap-3 overflow-hidden">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <p className="text-[16px] md:text-[17px] font-bold text-slate-900 truncate">{rec.issued_to} {rec.suffix || ""}</p>
-                                    <span className={`flex-shrink-0 text-[9px] px-2 py-0.5 rounded-md font-black uppercase ${rec.isModern ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>{rec.isModern ? 'New' : 'Legacy'}</span>
-                                </div>
-                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
-                                    <span className="text-slate-500 font-medium">{rec.type}</span>
-                                    <span className="hidden md:inline w-1 h-1 bg-slate-300 rounded-full"></span>
-                                    <span className="font-mono text-blue-600 font-bold">{rec.cert_number}</span>
-                                    <span className="inline md:hidden text-slate-400 font-bold">• SY {rec.school_year}</span>
-                                </div>
-                              </div>
-                          </div>
-                          <div className="flex items-center justify-between md:justify-end gap-3 md:gap-8 border-t md:border-t-0 border-slate-50 pt-3 md:pt-0">
-                              <div className="hidden md:block text-right">
-                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5">Academic Year</p>
-                                  <p className="text-[14px] text-slate-800 font-bold">{rec.school_year}</p>
-                              </div>
-                              <div className={`px-3 py-1.5 rounded-full text-[11px] font-black flex items-center gap-2 ${rec.validity === 'VALID' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
-                                  <div className={`w-2 h-2 rounded-full animate-pulse ${rec.validity === 'VALID' ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
-                                  {rec.validity || 'VALID'}
-                              </div>
-                              <div className="flex items-center gap-1">
-                                  <button onClick={(e) => { e.stopPropagation(); handleEditClick(rec); }} className="cursor-pointer p-2.5 text-slate-400 hover:text-blue-700 hover:bg-blue-50 active:bg-blue-100 rounded-xl transition-all">
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                  </button>
-                              </div>
-                          </div>
-                      </div>
-                  ))
-              ) : (
-            filteredRegistrants.map((reg) => (
-              <div 
-                key={`reg-${reg.id}`}
-                onClick={() => { setSelectedRegistrant(reg); setIsRegistrantModalOpen(true); }}
-                className="bg-white rounded-2xl p-4 md:p-5 border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:shadow-md transition-all border-l-4 border-l-blue-600 cursor-pointer"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="text-[16px] md:text-[17px] font-bold text-slate-900 truncate">{reg.first_name} {reg.middle_name ? `${reg.middle_name.charAt(0)}.` : ''} {reg.surname} {reg.suffix || ""}</p>
-                    <span className="bg-blue-50 text-blue-700 text-[10px] px-2 py-0.5 rounded-md font-bold uppercase">Online Submission</span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-slate-500">
-                    <span className="font-bold">{reg.position_assigned}</span>
-                    <span className="hidden md:inline">•</span>
-                    <span className="font-bold text-blue-600">SY {reg.school_year_graduation}</span>
-                    <span className="hidden md:inline">•</span>
-                    <span className="font-medium">{reg.email}</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between md:justify-end gap-3 md:gap-8 border-t md:border-t-0 border-slate-50 pt-3 md:pt-0">
-                  <div className="hidden md:block text-right">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5">Application Date</p>
-                    <p className="text-[14px] text-slate-800 font-bold">{formatDateCustom(reg.created_at)}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button onClick={(e) => { e.stopPropagation(); handlePromoteRegistrant(reg); }} className="cursor-pointer w-full md:w-auto px-5 py-2.5 bg-blue-600 text-white text-[13px] font-bold rounded-xl hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center gap-2">
-                      <UserPlusIcon /> Add to Records
-                    </button>
-                  </div>
-                </div>
+            <div className="flex items-center justify-between md:justify-end gap-3 md:gap-8 border-t md:border-t-0 border-slate-50 pt-3 md:pt-0">
+              <div className="hidden md:block text-right">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5">Academic Year</p>
+                <p className="text-[14px] text-slate-800 font-bold">{rec.school_year}</p>
               </div>
-            ))
-          )}
-
-          {((activeTab === "certificates" && filteredRecords.length === 0) || 
-            (activeTab === "registrants" && filteredRegistrants.length === 0)) && (
-              <div className="py-20 text-center bg-white rounded-[28px] border-2 border-dashed border-slate-200 text-slate-500">No matching records found.</div>
-          )}
-        </div>
+              <div className={`px-3 py-1.5 rounded-full text-[11px] font-black flex items-center gap-2 ${rec.validity === 'VALID' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                <div className={`w-2 h-2 rounded-full animate-pulse ${rec.validity === 'VALID' ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
+                {rec.validity || 'VALID'}
+              </div>
+              <div className="flex items-center gap-1">
+                <button onClick={(e) => { e.stopPropagation(); handleEditClick(rec); }} className="cursor-pointer p-2.5 text-slate-400 hover:text-blue-700 hover:bg-blue-50 active:bg-blue-100 rounded-xl transition-all">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        ))
+      ) : (
+        /* VIEW 3: REGISTRANTS (PENDING) */
+        filteredRegistrants.map((reg) => (
+          <div 
+            key={`reg-${reg.id}`}
+            onClick={() => { setSelectedRegistrant(reg); setIsRegistrantModalOpen(true); }}
+            className="bg-white rounded-2xl p-4 md:p-5 border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:shadow-md transition-all border-l-4 border-l-blue-600 cursor-pointer"
+          >
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <p className="text-[16px] md:text-[17px] font-bold text-slate-900 truncate">{reg.first_name} {reg.surname}</p>
+                <span className="bg-blue-50 text-blue-700 text-[10px] px-2 py-0.5 rounded-md font-bold uppercase">Online Submission</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-slate-500">
+                <span className="font-bold">{reg.position_assigned}</span>
+                <span className="hidden md:inline">•</span>
+                <span className="font-bold text-blue-600">SY {reg.school_year_graduation}</span>
+                <span className="hidden md:inline">•</span>
+                <span className="font-medium">{reg.email}</span>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-4">
+              <button onClick={(e) => { e.stopPropagation(); handlePromoteRegistrant(reg); }} className="cursor-pointer px-5 py-2.5 bg-blue-600 text-white text-[13px] font-bold rounded-xl hover:bg-blue-700 active:scale-95 transition-all flex items-center gap-2">
+                <PlusIcon /> Add to Records
+              </button>
+            </div>
+          </div>
+        ))
       )}
-    </main>
+
+      {/* EMPTY STATES */}
+      {((activeTab === "modern" && filteredRecords.length === 0) || 
+        (activeTab === "legacy" && filteredRecords.length === 0) || 
+        (activeTab === "registrants" && filteredRegistrants.length === 0)) && (
+          <div className="py-20 text-center bg-white rounded-[28px] border-2 border-dashed border-slate-200 text-slate-500">
+            No matching records found in {activeTab} tab.
+          </div>
+      )}
+    </div>
+  )}
+</main>
 
 {/* Center Preview Modal (Desktop) / Fullscreen (Mobile) */}
 {isPreviewModalOpen && selectedRecord && (
@@ -674,7 +725,9 @@ export default function DashboardPage() {
     <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsPreviewModalOpen(false)}></div>
     <div className="relative w-full h-full md:h-auto md:max-w-2xl bg-white md:rounded-[28px] shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden flex flex-col max-h-screen md:max-h-[90vh]">
        <div className="p-6 flex justify-between items-center border-b border-slate-100 bg-[#F3F6FC]">
-          <h3 className="text-xl font-medium">Record Preview</h3>
+          <h3 className="text-xl font-bold text-slate-900">
+    {selectedRecord.isModern ? "Modern Certificate Preview" : "Legacy Archive Preview"}
+</h3>
           <button onClick={() => setIsPreviewModalOpen(false)} className="cursor-pointer w-10 h-10 flex items-center justify-center hover:bg-slate-200 active:bg-slate-300 rounded-full transition-colors">✕</button>
        </div>
        
@@ -995,7 +1048,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {qrModalRecord && (
+{qrModalRecord && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4 z-[110]">
           <div className="bg-white rounded-[28px] p-8 max-w-[420px] w-full text-center shadow-2xl relative border border-slate-100">
             <div className="mb-6 py-3 px-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-center gap-2">
