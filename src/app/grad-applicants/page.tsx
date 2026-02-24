@@ -163,35 +163,46 @@ export default function GradApplicantsPage() {
 if (submitted) {
     return (
       <div className="min-h-screen bg-[#F8F9FF] flex items-center justify-center p-6 text-black">
-        <div className="max-w-sm w-full bg-white rounded-[28px] p-8 shadow-sm text-center border border-slate-100">
-          <div className="text-emerald-600 mb-2">
-            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <div className="max-w-sm w-full bg-white rounded-[32px] p-10 shadow-sm text-center border border-slate-100 animate-in fade-in zoom-in-95 duration-300">
+          {/* Green Check Icon */}
+          <div className="text-emerald-500 mb-6">
+            <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
           
-          <h1 className="text-2xl font-bold mb-1">Application Sent</h1>
+          <h1 className="text-[24px] font-black text-slate-900 mb-2 uppercase tracking-tight">
+            Application Submitted
+          </h1>
           
-          {/* Full Name Display */}
-          <div className="mb-4">
-            <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Registrant</p>
-            <p className="text-emerald-600 font-bold text-lg leading-tight uppercase">
-              {formData.firstName} {formData.middleName} {formData.surname} {!noSuffix && formData.suffix ? formData.suffix : ""}
+          <div className="space-y-4 mb-8">
+            <p className="text-slate-600 font-bold text-[14px] leading-relaxed">
+              Your details have been successfully received, <br />
+              <span className="text-emerald-600 uppercase">
+                {formData.firstName} {formData.middleName} {formData.surname} {!noSuffix && formData.suffix ? formData.suffix : ""}
+              </span>!
+            </p>
+
+            <p className="text-slate-500 font-medium text-[13px] leading-relaxed">
+              We will notify you once we have verified your details and processed your certificate.
             </p>
           </div>
-
-          <p className="text-slate-600 mb-4 font-bold text-[14px]">
-            Your certificate is on the way!
-          </p>
           
-          <div className="pt-4 border-t border-slate-50">
-            <p className="text-slate-500 mb-1 font-bold text-[12px]">
-              For any concerns, contact us at:
+          <div className="pt-6 border-t border-slate-100">
+            <p className="text-slate-400 mb-2 font-black text-[10px] uppercase tracking-widest">
+              Support & Inquiries
             </p>
-            <p className="text-emerald-600 font-bold text-[13px]">
+            <p className="text-slate-700 font-bold text-[13px]">
               records.rmmo@gmail.com
             </p>
           </div>
+
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-8 w-full py-4 bg-slate-900 text-white rounded-2xl font-bold text-[13px] hover:bg-slate-800 transition-all uppercase tracking-wide"
+          >
+            Back to Home
+          </button>
         </div>
       </div>
     );
