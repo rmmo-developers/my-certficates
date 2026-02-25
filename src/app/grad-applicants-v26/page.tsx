@@ -392,7 +392,7 @@ if (submitted) {
             className="cursor-pointer w-4 h-4 accent-blue-700" 
           />
           <label htmlFor="nomiddle" className="cursor-pointer text-[9px] leading-tight font-black text-slate-500 uppercase">
-            No Middle Name <br/> <span className="text-slate-400 font-medium">(Walang Gitnang Pangalan)</span>
+            No Middle Initial <br/> <span className="text-slate-400 font-medium">(Walang Gitnang Inisyal)</span>
           </label>
         </div>
       </div>
