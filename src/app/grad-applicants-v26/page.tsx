@@ -52,7 +52,7 @@ const [formData, setFormData] = useState({
   suffix: "",
   noMiddleName: false, // Add this
   noSuffix: false,     // Move this inside here for consistency
-  gender: "", 
+  gender: "HIM", 
   birthday: "", 
   email: "", 
   gradeLevelSection: "",
