@@ -387,12 +387,12 @@ const handleConfirmedDelete = async () => {
   setPasswordError(false);
   
   const { data: { user } } = await supabase.auth.getUser();
-  const { error } = await supabase.auth.signInWithPassword({
+  const { error: authError } = await supabase.auth.signInWithPassword({
       email: user?.email || "",
       password: deletePassword,
   });
 
-  if (error) {
+  if (authError) {
       setPasswordError(true);
       setLoading(false);
       return;
@@ -403,19 +403,27 @@ const handleConfirmedDelete = async () => {
     const result = await deleteCertificate(isEditing, recordToDelete?.isModern);
     
     if (result.success) {
-      // 1. Unahan na natin ang database: Tanggalin na agad sa local state 
-      // para hindi mag-flicker o mag-empty ang listahan.
+      // 1. Agarang update sa local state (Optimistic UI)
+      // Ito ang pinaka-importante para mawala agad sa listahan ang binura mo
       setRecords(prev => prev.filter(r => r.id !== isEditing));
 
+      // 2. Isara lahat ng modals bago mag-refresh
       setShowDeletePasswordModal(false);
       setDeletePassword("");
-      closeModal();
+      closeModal(); // Dito nase-set ang isEditing sa null
       
-      // 2. HINTAYIN (await) na matapos ang pagkuha ng fresh data.
+      // 3. Hukayin ang bagong data mula sa database
       await refreshData();
+      
+      // 4. Force state reset para sa loading (Optional pero recommended)
+      setLoading(false);
+    } else {
+      alert("Failed to delete record from database.");
+      setLoading(false);
     }
+  } else {
+    setLoading(false);
   }
-  setLoading(false);
 };
 
   const downloadQRCode = () => {
