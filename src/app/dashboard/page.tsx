@@ -402,26 +402,28 @@ const handleConfirmedDelete = async () => {
     const recordIdToDelete = isEditing; // I-save ang ID bago i-clear
     const recordToDelete = records.find(r => r.id === recordIdToDelete);
     const result = await deleteCertificate(recordIdToDelete, recordToDelete?.isModern);
-    
     if (result.success) {
-      // UNAHAN ANG DATABASE (Optimistic UI)
-      // Tatanggalin agad sa UI list para hindi mag-flicker
+      // 1. Tanggalin agad sa listahan
       setRecords(prev => prev.filter(r => r.id !== recordIdToDelete));
 
-      // Isara ang mga modals
+      // 2. Isara ang UI components
       setShowDeletePasswordModal(false);
       setDeletePassword("");
-      closeModal(); // Dito magiging null ang isEditing
+      closeModal(); 
       
-      // Kunin ang fresh data pero huwag nang mag-rely dito para sa instant UI feedback
+      // 3. Kunin ang bagong data at HINTAYIN itong matapos
       await refreshData();
+      
+      // 4. DITO lang i-false ang loading para sigurado
+      setLoading(false); 
     } else {
       alert("Failed to delete record.");
+      setLoading(false);
     }
+  } else {
+    setLoading(false);
   }
-  setLoading(false);
 };
-
   const downloadQRCode = () => {
     const svg = document.getElementById("qr-code-svg");
     if (!svg) return;
