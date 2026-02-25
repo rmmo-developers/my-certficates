@@ -387,43 +387,39 @@ const handleConfirmedDelete = async () => {
   setPasswordError(false);
   
   const { data: { user } } = await supabase.auth.getUser();
-  const { error: authError } = await supabase.auth.signInWithPassword({
+  const { error } = await supabase.auth.signInWithPassword({
       email: user?.email || "",
       password: deletePassword,
   });
 
-  if (authError) {
+  if (error) {
       setPasswordError(true);
       setLoading(false);
       return;
   }
 
   if (isEditing) {
-    const recordToDelete = records.find(r => r.id === isEditing);
-    const result = await deleteCertificate(isEditing, recordToDelete?.isModern);
+    const recordIdToDelete = isEditing; // I-save ang ID bago i-clear
+    const recordToDelete = records.find(r => r.id === recordIdToDelete);
+    const result = await deleteCertificate(recordIdToDelete, recordToDelete?.isModern);
     
     if (result.success) {
-      // 1. Agarang update sa local state (Optimistic UI)
-      // Ito ang pinaka-importante para mawala agad sa listahan ang binura mo
-      setRecords(prev => prev.filter(r => r.id !== isEditing));
+      // UNAHAN ANG DATABASE (Optimistic UI)
+      // Tatanggalin agad sa UI list para hindi mag-flicker
+      setRecords(prev => prev.filter(r => r.id !== recordIdToDelete));
 
-      // 2. Isara lahat ng modals bago mag-refresh
+      // Isara ang mga modals
       setShowDeletePasswordModal(false);
       setDeletePassword("");
-      closeModal(); // Dito nase-set ang isEditing sa null
+      closeModal(); // Dito magiging null ang isEditing
       
-      // 3. Hukayin ang bagong data mula sa database
+      // Kunin ang fresh data pero huwag nang mag-rely dito para sa instant UI feedback
       await refreshData();
-      
-      // 4. Force state reset para sa loading (Optional pero recommended)
-      setLoading(false);
     } else {
-      alert("Failed to delete record from database.");
-      setLoading(false);
+      alert("Failed to delete record.");
     }
-  } else {
-    setLoading(false);
   }
+  setLoading(false);
 };
 
   const downloadQRCode = () => {
@@ -757,14 +753,16 @@ const handleConfirmedDelete = async () => {
         ))
       )}
 
-      {/* EMPTY STATES */}
-      {((activeTab === "modern" && filteredRecords.length === 0) || 
-        (activeTab === "legacy" && filteredRecords.length === 0) || 
-        (activeTab === "registrants" && filteredRegistrants.length === 0)) && (
-          <div className="py-20 text-center bg-white rounded-[28px] border-2 border-dashed border-slate-200 text-slate-500">
-            No matching records found in {activeTab} tab.
-          </div>
-      )}
+      {/* EMPTY STATES - Ngayon ay may check na kung hindi na naglo-load */}
+{!fetching && !loading && (
+  ((activeTab === "modern" && filteredRecords.length === 0) || 
+   (activeTab === "legacy" && filteredRecords.length === 0) || 
+   (activeTab === "registrants" && filteredRegistrants.length === 0))
+) && (
+  <div className="py-20 text-center bg-white rounded-[28px] border-2 border-dashed border-slate-200 text-slate-500">
+    No matching records found in {activeTab} tab.
+  </div>
+)}
     </div>
   )}
 </main>
