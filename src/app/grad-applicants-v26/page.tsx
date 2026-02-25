@@ -349,8 +349,13 @@ if (submitted) {
                           <input required className={inputClass} value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value.toUpperCase()})} />
                       </div>
                       <div className="md:col-span-2">
-                          <label className={labelClass}>M.I.{requiredStar}</label>
-                          <input required maxLength={2} className={inputClass} value={formData.middleName} onChange={e => setFormData({...formData, middleName: e.target.value.toUpperCase()})} />
+<label className={labelClass}>M.I.</label>
+<input 
+  maxLength={2} 
+  className={inputClass} 
+  value={formData.middleName} 
+  onChange={e => setFormData({...formData, middleName: e.target.value.toUpperCase()})} 
+/>
                       </div>
                       <div className="md:col-span-4">
                           <label className={labelClass}>Surname{requiredStar}</label>
