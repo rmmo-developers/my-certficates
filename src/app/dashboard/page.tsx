@@ -382,31 +382,41 @@ const handlePromoteRegistrant = async (reg: any) => {
     setFormData(initialForm);
   };
 
-  const handleConfirmedDelete = async () => {
-    setLoading(true);
-    setPasswordError(false);
-    const { data: { user } } = await supabase.auth.getUser();
-    const { error } = await supabase.auth.signInWithPassword({
-        email: user?.email || "",
-        password: deletePassword,
-    });
-    if (error) {
-        setPasswordError(true);
-        setLoading(false);
-        return;
+const handleConfirmedDelete = async () => {
+  setLoading(true);
+  setPasswordError(false);
+  
+  const { data: { user } } = await supabase.auth.getUser();
+  const { error } = await supabase.auth.signInWithPassword({
+      email: user?.email || "",
+      password: deletePassword,
+  });
+
+  if (error) {
+      setPasswordError(true);
+      setLoading(false);
+      return;
+  }
+
+  if (isEditing) {
+    const recordToDelete = records.find(r => r.id === isEditing);
+    const result = await deleteCertificate(isEditing, recordToDelete?.isModern);
+    
+    if (result.success) {
+      // 1. Unahan na natin ang database: Tanggalin na agad sa local state 
+      // para hindi mag-flicker o mag-empty ang listahan.
+      setRecords(prev => prev.filter(r => r.id !== isEditing));
+
+      setShowDeletePasswordModal(false);
+      setDeletePassword("");
+      closeModal();
+      
+      // 2. HINTAYIN (await) na matapos ang pagkuha ng fresh data.
+      await refreshData();
     }
-    if (isEditing) {
-      const recordToDelete = records.find(r => r.id === isEditing);
-      const result = await deleteCertificate(isEditing, recordToDelete?.isModern);
-      if (result.success) {
-        setShowDeletePasswordModal(false);
-        setDeletePassword("");
-        closeModal();
-        refreshData();
-      }
-    }
-    setLoading(false);
-  };
+  }
+  setLoading(false);
+};
 
   const downloadQRCode = () => {
     const svg = document.getElementById("qr-code-svg");
