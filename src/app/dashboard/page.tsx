@@ -148,8 +148,7 @@ const [activeTab, setActiveTab] = useState<"modern" | "legacy" | "registrants">(
   };
 
   const [formData, setFormData] = useState(initialForm);
-
-  const closeTopModal = useCallback(() => {
+const closeTopModal = useCallback(() => {
     if (isFullscreen) return setIsFullscreen(false);
     if (showNoThumbnailConfirm) return setShowNoThumbnailConfirm(false);
     if (showDeleteConfirm) return setShowDeleteConfirm(false);
@@ -164,6 +163,31 @@ const [activeTab, setActiveTab] = useState<"modern" | "legacy" | "registrants">(
     if (isPreviewModalOpen) return setIsPreviewModalOpen(false);
     if (isModalOpen) return closeModal();
   }, [isFullscreen, showNoThumbnailConfirm, showDeleteConfirm, showDeletePasswordModal, showLogoutConfirm, qrModalRecord, isModalOpen, isPreviewModalOpen]);
+
+  // --- START OF AUTO-ID GENERATION ---
+  useEffect(() => {
+    const updateID = async () => {
+      // Mag-ge-generate lang kung hindi Editing, hindi Legacy, at may Pangalan + Batch Year
+      if (!isLegacyMode && !isReviewing && !isEditing && formData.yearGraduated && (formData.firstName || formData.surname)) {
+        try {
+          const count = await getModernCount(formData.yearGraduated, formData.type);
+          const newID = generateCertificateID(
+            formData.firstName.toUpperCase(),
+            formData.surname.toUpperCase(),
+            formData.dateIssued,
+            formData.yearGraduated,
+            formData.type,
+            count + 1
+          );
+          setFormData((prev) => ({ ...prev, manualCertNumber: newID }));
+        } catch (error) {
+          console.error("Error fetching count:", error);
+        }
+      }
+    };
+    updateID();
+  }, [formData.firstName, formData.surname, formData.yearGraduated, formData.type, isLegacyMode, isReviewing, isEditing]);
+  // --- END OF AUTO-ID GENERATION ---
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
