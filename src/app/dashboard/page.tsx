@@ -164,11 +164,11 @@ const closeTopModal = useCallback(() => {
     if (isModalOpen) return closeModal();
   }, [isFullscreen, showNoThumbnailConfirm, showDeleteConfirm, showDeletePasswordModal, showLogoutConfirm, qrModalRecord, isModalOpen, isPreviewModalOpen]);
 
-  // --- START OF AUTO-ID GENERATION ---
+  // --- AUTO-ID GENERATOR EFFECT ---
   useEffect(() => {
     const updateID = async () => {
-      // Mag-ge-generate lang kung hindi Editing, hindi Legacy, at may Pangalan + Batch Year
-      if (!isLegacyMode && !isReviewing && !isEditing && formData.yearGraduated && (formData.firstName || formData.surname)) {
+      // Mag-aauto generate lang kung Modern Mode, hindi Editing, at may Batch Year na
+      if (!isLegacyMode && !isEditing && formData.yearGraduated && (formData.firstName || formData.surname)) {
         try {
           const count = await getModernCount(formData.yearGraduated, formData.type);
           const newID = generateCertificateID(
@@ -179,15 +179,15 @@ const closeTopModal = useCallback(() => {
             formData.type,
             count + 1
           );
+          // I-set ang bagong ID sa form para makita agad sa screen
           setFormData((prev) => ({ ...prev, manualCertNumber: newID }));
         } catch (error) {
-          console.error("Error fetching count:", error);
+          console.error("Error auto-generating ID:", error);
         }
       }
     };
     updateID();
-  }, [formData.firstName, formData.surname, formData.yearGraduated, formData.type, isLegacyMode, isReviewing, isEditing]);
-  // --- END OF AUTO-ID GENERATION ---
+  }, [formData.firstName, formData.surname, formData.yearGraduated, formData.type, isLegacyMode, isEditing]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
