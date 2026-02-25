@@ -297,8 +297,14 @@ const filteredRecords = useMemo(() => {
     );
   }, [registrants, searchTerm]);
 
-  const handlePromoteRegistrant = (reg: any) => {
+const handlePromoteRegistrant = async (reg: any) => {
     setIsRegistrantModalOpen(false); 
+    
+    // 1. Kunin ang dulo ng School Year (halimbawa: "2025-2026" -> "2026")
+    // Kahit anong taon ang ilagay sa registration, ito ang kukuha ng tamang Batch Year
+    const yearParts = (reg.school_year_graduation || "").split('-');
+    const yearGrad = yearParts[yearParts.length - 1].trim();
+
     setFormData({
       ...initialForm,
       firstName: reg.first_name.toUpperCase(),
@@ -306,8 +312,10 @@ const filteredRecords = useMemo(() => {
       surname: reg.surname.toUpperCase(),
       suffix: reg.suffix?.toUpperCase() || "",
       schoolYear: reg.school_year_graduation || "",
-      yearGraduated: "",
+      // 2. Dito natin ilalagay ang nakuha nating taon (2025, 2026, etc.)
+      yearGraduated: yearGrad, 
     });
+
     setPendingRegistrantId(reg.id);
     setIsLegacyMode(false);
     setIsReviewing(false);
