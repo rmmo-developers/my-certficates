@@ -345,15 +345,15 @@ if (submitted) {
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
                       <div className="md:col-span-4">
-                          <label className={labelClass}>Given Name{requiredStar}</label>
+                          <label className={labelClass}>Given Names (Mga Pangalan){requiredStar}</label>
                           <input required className={inputClass} value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value.toUpperCase()})} />
                       </div>
                       <div className="md:col-span-2">
-                          <label className={labelClass}>M.I.{requiredStar}</label>
+                          <label className={labelClass}>Middle Initial (Gitnang Pangalan){requiredStar}</label>
                           <input required maxLength={2} className={inputClass} value={formData.middleName} onChange={e => setFormData({...formData, middleName: e.target.value.toUpperCase()})} />
                       </div>
                       <div className="md:col-span-4">
-                          <label className={labelClass}>Surname{requiredStar}</label>
+                          <label className={labelClass}>Last Name (Apelyido){requiredStar}</label>
                           <input required className={inputClass} value={formData.surname} onChange={e => setFormData({...formData, surname: e.target.value.toUpperCase()})} />
                       </div>
                       <div className="md:col-span-2">
