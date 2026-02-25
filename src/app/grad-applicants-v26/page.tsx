@@ -45,13 +45,23 @@ export default function GradApplicantsPage() {
   const [privacyAgreed, setPrivacyAgreed] = useState(false); 
   const [noSuffix, setNoSuffix] = useState(false);
 
-  const [formData, setFormData] = useState({
-    surname: "", firstName: "", middleName: "", suffix: "",
-    gender: "HIM", 
-    birthday: "", email: "", gradeLevelSection: "",
-    strand: "TVL-ICT", schoolYearGraduation: "",
-    dateStarted: "", dateEnded: "", positionAssigned: ""
-  });
+const [formData, setFormData] = useState({
+  surname: "", 
+  firstName: "", 
+  middleName: "", 
+  suffix: "",
+  noMiddleName: false, // Add this
+  noSuffix: false,     // Move this inside here for consistency
+  gender: "", 
+  birthday: "", 
+  email: "", 
+  gradeLevelSection: "",
+  strand: "TVL-ICT", 
+  schoolYearGraduation: "",
+  dateStarted: "", 
+  dateEnded: "", 
+  positionAssigned: ""
+});
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "";
@@ -348,15 +358,36 @@ if (submitted) {
                           <label className={labelClass}>Given Name{requiredStar}</label>
                           <input required className={inputClass} value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value.toUpperCase()})} />
                       </div>
-                      <div className="md:col-span-2">
-<label className={labelClass}>M.I.</label>
-<input 
-  maxLength={2} 
-  className={inputClass} 
-  value={formData.middleName} 
-  onChange={e => setFormData({...formData, middleName: e.target.value.toUpperCase()})} 
-/>
-                      </div>
+                     {/* Middle Initial Block */}
+<div className="md:col-span-2">
+  <label className={labelClass}>M.I.</label>
+  <input 
+    maxLength={2} 
+    className={`${inputClass} ${!formData.middleName && "placeholder:font-normal"}`} 
+    value={formData.middleName} 
+    disabled={formData.noMiddleName} // You'll need to add this state
+    placeholder={formData.noMiddleName ? "N/A" : ""}
+    onChange={e => setFormData({...formData, middleName: e.target.value.toUpperCase()})} 
+  />
+  <div className="flex items-center gap-2 mt-2 ml-1">
+    <input 
+      type="checkbox" 
+      id="nomiddle" 
+      checked={formData.noMiddleName} 
+      onChange={(e) => {
+        setFormData({
+          ...formData, 
+          noMiddleName: e.target.checked,
+          middleName: e.target.checked ? "" : formData.middleName
+        });
+      }} 
+      className="cursor-pointer w-4 h-4 accent-blue-700" 
+    />
+    <label htmlFor="nomiddle" className="cursor-pointer text-[10px] font-black text-slate-500 uppercase">
+      No Middle Name
+    </label>
+  </div>
+</div>
                       <div className="md:col-span-4">
                           <label className={labelClass}>Surname{requiredStar}</label>
                           <input required className={inputClass} value={formData.surname} onChange={e => setFormData({...formData, surname: e.target.value.toUpperCase()})} />
