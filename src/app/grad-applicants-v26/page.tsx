@@ -348,79 +348,93 @@ if (submitted) {
             <StepTracker currentStep={currentStep} />
             
             {currentStep === 1 && (
-              <form onSubmit={(e) => { e.preventDefault(); nextStep(); }} className="space-y-6 animate-in fade-in slide-in-from-right-4">
-                <section className="bg-white rounded-[24px] p-6 md:p-8 border border-slate-100 shadow-sm">
-                  <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-3">
-                    <span className="w-1 h-6 bg-blue-700 rounded-full"></span> Personal Information
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
-                      <div className="md:col-span-4">
-                          <label className={labelClass}>Given Name{requiredStar}</label>
-                          <input required className={inputClass} value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value.toUpperCase()})} />
-                      </div>
-                     {/* Middle Initial Block */}
-<div className="md:col-span-2">
-  <label className={labelClass}>M.I.</label>
-  <input 
-    maxLength={2} 
-    className={`${inputClass} ${!formData.middleName && "placeholder:font-normal"}`} 
-    value={formData.middleName} 
-    disabled={formData.noMiddleName} // You'll need to add this state
-    placeholder={formData.noMiddleName ? "N/A" : ""}
-    onChange={e => setFormData({...formData, middleName: e.target.value.toUpperCase()})} 
-  />
-  <div className="flex items-center gap-2 mt-2 ml-1">
-    <input 
-      type="checkbox" 
-      id="nomiddle" 
-      checked={formData.noMiddleName} 
-      onChange={(e) => {
-        setFormData({
-          ...formData, 
-          noMiddleName: e.target.checked,
-          middleName: e.target.checked ? "" : formData.middleName
-        });
-      }} 
-      className="cursor-pointer w-4 h-4 accent-blue-700" 
-    />
-    <label htmlFor="nomiddle" className="cursor-pointer text-[10px] font-black text-slate-500 uppercase">
-      No Middle Name
-    </label>
-  </div>
-</div>
-                      <div className="md:col-span-4">
-                          <label className={labelClass}>Surname{requiredStar}</label>
-                          <input required className={inputClass} value={formData.surname} onChange={e => setFormData({...formData, surname: e.target.value.toUpperCase()})} />
-                      </div>
-                      <div className="md:col-span-2">
-                        <label className={labelClass}>Suffix</label>
-                        <select 
-                          disabled={noSuffix} 
-                          className={`${inputClass} disabled:opacity-30`} 
-                          value={formData.suffix} 
-                          onChange={e => setFormData({...formData, suffix: e.target.value})}
-                        >
-                          <option value=""></option>
-                          <option value="JR">JR</option>
-                          <option value="III">III</option>
-                          <option value="IV">IV</option>
-                          <option value="V">V</option>
-                          <option value="SR">SR</option>
-                        </select>
-                        <div className="flex items-center gap-2 mt-2 ml-1">
-                          <input 
-                            type="checkbox" 
-                            id="nosuffix" 
-                            checked={noSuffix} 
-                            onChange={(e) => {
-                              setNoSuffix(e.target.checked); 
-                              if(e.target.checked) setFormData({...formData, suffix: ""})
-                            }} 
-                            className="cursor-pointer w-4 h-4 accent-blue-700" 
-                          />
-                          <label htmlFor="nosuffix" className="cursor-pointer text-[10px] font-black text-slate-500 uppercase">
-                            No Suffix
-                          </label>
+             <form onSubmit={(e) => { e.preventDefault(); nextStep(); }} className="space-y-6 animate-in fade-in slide-in-from-right-4">
+  <section className="bg-white rounded-[24px] p-6 md:p-8 border border-slate-100 shadow-sm">
+    <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-3">
+      <span className="w-1 h-6 bg-blue-700 rounded-full"></span> 
+      Personal Information <span className="text-slate-400 font-normal text-sm">(Impormasyong Personal)</span>
+    </h2>
+    
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
+      {/* Given Name */}
+      <div className="md:col-span-4">
+        <label className={labelClass}>
+          Given Name{requiredStar} <span className="text-[10px] text-slate-400 font-normal">(Mga Pangalan)</span>
+        </label>
+        <input required className={inputClass} value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value.toUpperCase()})} />
+      </div>
+
+      {/* Middle Initial Block */}
+      <div className="md:col-span-2">
+        <label className={labelClass}>
+          M.I. <span className="text-[10px] text-slate-400 font-normal">(G.P.)</span>
+        </label>
+        <input 
+          maxLength={2} 
+          className={`${inputClass} ${!formData.middleName && "placeholder:font-normal"}`} 
+          value={formData.middleName} 
+          disabled={formData.noMiddleName} 
+          placeholder={formData.noMiddleName ? "N/A" : ""}
+          onChange={e => setFormData({...formData, middleName: e.target.value.toUpperCase()})} 
+        />
+        <div className="flex items-center gap-2 mt-2 ml-1">
+          <input 
+            type="checkbox" 
+            id="nomiddle" 
+            checked={formData.noMiddleName} 
+            onChange={(e) => {
+              setFormData({
+                ...formData, 
+                noMiddleName: e.target.checked,
+                middleName: e.target.checked ? "" : formData.middleName
+              });
+            }} 
+            className="cursor-pointer w-4 h-4 accent-blue-700" 
+          />
+          <label htmlFor="nomiddle" className="cursor-pointer text-[9px] leading-tight font-black text-slate-500 uppercase">
+            No Middle Name <br/> <span className="text-slate-400 font-medium">(Walang Gitnang Pangalan)</span>
+          </label>
+        </div>
+      </div>
+
+      {/* Surname */}
+      <div className="md:col-span-4">
+        <label className={labelClass}>
+          Surname{requiredStar} <span className="text-[10px] text-slate-400 font-normal">(Apelyido)</span>
+        </label>
+        <input required className={inputClass} value={formData.surname} onChange={e => setFormData({...formData, surname: e.target.value.toUpperCase()})} />
+      </div>
+
+      {/* Suffix */}
+      <div className="md:col-span-2">
+        <label className={labelClass}>Suffix</label>
+        <select 
+          disabled={noSuffix} 
+          className={`${inputClass} disabled:opacity-30`} 
+          value={formData.suffix} 
+          onChange={e => setFormData({...formData, suffix: e.target.value})}
+        >
+          <option value=""></option>
+          <option value="JR">JR</option>
+          <option value="III">III</option>
+          <option value="IV">IV</option>
+          <option value="V">V</option>
+          <option value="SR">SR</option>
+        </select>
+        <div className="flex items-center gap-2 mt-2 ml-1">
+          <input 
+            type="checkbox" 
+            id="nosuffix" 
+            checked={noSuffix} 
+            onChange={(e) => {
+              setNoSuffix(e.target.checked); 
+              if(e.target.checked) setFormData({...formData, suffix: ""})
+            }} 
+            className="cursor-pointer w-4 h-4 accent-blue-700" 
+          />
+          <label htmlFor="nosuffix" className="cursor-pointer text-[9px] leading-tight font-black text-slate-500 uppercase">
+            No Suffix <br/> <span className="text-slate-400 font-medium">(Walang Karugtong)</span>
+          </label>
                         </div>
                       </div>
 
