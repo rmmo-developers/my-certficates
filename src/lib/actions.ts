@@ -278,6 +278,7 @@ export async function updateRegistrantStatus(id: number, status: string) {
 /**
  * APPROVE/PROMOTE: Moves registrant data to certificate tables.
  * Includes a guard to prevent duplicate certificate creation.
+ * UPDATED: Now saves year_graduated to prevent ID duplication.
  */
 export async function approveRegistrant(registrant: any, certData: any) {
   try {
@@ -302,16 +303,18 @@ export async function approveRegistrant(registrant: any, certData: any) {
     const targetTable = isModernYear ? "certificates_modern" : "certificates";
 
     // 1. Insert into certificate table
+    // FIXED: Added year_graduated column and arg so getModernCount works correctly
     await turso.execute({
-      sql: `INSERT INTO ${targetTable} (cert_number, issued_to, type, issued_by, date_issued, school_year) 
-            VALUES (?, ?, ?, ?, ?, ?)`,
+      sql: `INSERT INTO ${targetTable} (cert_number, issued_to, type, issued_by, date_issued, school_year, year_graduated) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)`,
       args: [
         certData.certNumber.toUpperCase(),
         fullName,
         certData.type,
         certData.issuedBy,
         certData.dateIssued,
-        registrant.school_year_graduation
+        registrant.school_year_graduation,
+        certData.yearGraduated
       ],
     });
 
