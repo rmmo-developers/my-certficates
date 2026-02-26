@@ -280,7 +280,7 @@ export default function GradApplicantsPage() {
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
             <div className="bg-white rounded-[24px] p-6 md:p-10 border border-slate-100 shadow-sm">
               <h2 className="text-xl font-black text-slate-900 mb-4 uppercase tracking-tighter">
-                {isEnglish ? "Privacy Consent" : "Pahintulot sa Privacy"}
+                {isEnglish ? "Data Privacy Consent" : "Pahintulot para sa Data Privacy"}
               </h2>
               <div className="space-y-4 text-slate-700 leading-relaxed font-bold text-[14px]">
                 <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200">
@@ -361,7 +361,7 @@ export default function GradApplicantsPage() {
                       </div>
                     </div>
                     <div className="md:col-span-4">
-                      <label className={labelClass}>Surname{requiredStar} <span className="text-[10px] text-slate-400 font-normal">(Apelyido)</span></label>
+                      <label className={labelClass}>Last Name{requiredStar} <span className="text-[10px] text-slate-400 font-normal">(Apelyido)</span></label>
                       <input required className={inputClass} value={formData.surname} onChange={e => setFormData({...formData, surname: e.target.value.toUpperCase()})} />
                     </div>
                     <div className="md:col-span-2">
