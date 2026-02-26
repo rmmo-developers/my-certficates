@@ -350,11 +350,11 @@ export default function GradApplicantsPage() {
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                     <div className="md:col-span-4">
                       <label className={labelClass}>Given Names{requiredStar} <span className="text-[10px] text-slate-400 font-normal">(Mga Pangalan)</span></label>
-                      <input required className={inputClass} value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value.toUpperCase()})} />
+                      <input required className={inputClass} placeholder="John Michael" value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value.toUpperCase()})} />
                     </div>
                     <div className="md:col-span-2">
                       <label className={labelClass}>M.I. <span className="text-[10px] text-slate-400 font-normal">(G.P.)</span></label>
-                      <input maxLength={2} className={`${inputClass} ${!formData.middleName && "placeholder:font-normal"}`} value={formData.middleName} disabled={formData.noMiddleName} placeholder={formData.noMiddleName ? "N/A" : ""} onChange={e => setFormData({...formData, middleName: e.target.value.toUpperCase()})} />
+                      <input maxLength={2} className={`${inputClass} placeholder="C" ${!formData.middleName && "placeholder:font-normal"}`} value={formData.middleName} disabled={formData.noMiddleName} placeholder={formData.noMiddleName ? "N/A" : ""} onChange={e => setFormData({...formData, middleName: e.target.value.toUpperCase()})} />
                       <div className="flex items-center gap-2 mt-2 ml-1">
                         <input type="checkbox" id="nomiddle" checked={formData.noMiddleName} onChange={(e) => setFormData({...formData, noMiddleName: e.target.checked, middleName: e.target.checked ? "" : formData.middleName})} className="cursor-pointer w-4 h-4 accent-blue-700" />
                         <label htmlFor="nomiddle" className="cursor-pointer text-[9px] leading-tight font-black text-slate-500 uppercase">No Middle Initial <br/> <span className="text-slate-400 font-medium">(Walang Gitnang Inisyal)</span></label>
@@ -362,7 +362,7 @@ export default function GradApplicantsPage() {
                     </div>
                     <div className="md:col-span-4">
                       <label className={labelClass}>Last Name{requiredStar} <span className="text-[10px] text-slate-400 font-normal">(Apelyido)</span></label>
-                      <input required className={inputClass} value={formData.surname} onChange={e => setFormData({...formData, surname: e.target.value.toUpperCase()})} />
+                      <input required className={inputClass} placeholder="Dela Cruz" value={formData.surname} onChange={e => setFormData({...formData, surname: e.target.value.toUpperCase()})} />
                     </div>
                     <div className="md:col-span-2">
                       <label className={labelClass}>Suffix</label>
