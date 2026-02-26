@@ -250,28 +250,86 @@ if (submitted) {
         </div>
       </header>
 
+     // CONTENT DICTIONARY (English stays exactly as you provided)
+  const content = {
+    intro: {
+      title: isEnglish ? "Introduction" : "Panimula",
+      p1: isEnglish 
+        ? "This application form collects basic information regarding your training and completion journey at the Roxasian Moments Multimedia Organization (RMMO). We are committed to protecting your data privacy; the information provided will be used solely to record, verify, and certify your credentials to facilitate the issuance of your Certificate of Completion."
+        : "Ang application form na ito ay nangongolekta ng pangunahing impormasyon tungkol sa iyong pagsasanay at pagtatapos sa Roxasian Moments Multimedia Organization (RMMO). Kami ay nakatuon sa pagprotekta ng iyong privacy; ang impormasyong ibibigay ay gagamitin lamang sa pagtatala, pagpapatunay, at pagpapatibay ng iyong mga kredensyal para sa pag-isyu ng iyong Certificate of Completion.",
+      reminder: isEnglish
+        ? "Reminder: Avoid double submission to prevent double records."
+        : "Paalala: Iwasan ang magdoble ng pagpasa ng Application Form. Para hindi magdoble ang records.",
+      note: isEnglish
+        ? "Note: Most of your data is deleted once your certificate is released. We only keep your Name and Graduation Year for future verification."
+        : "Paunawa: Karamihan sa iyong data ay buburahin kapag naibigay na ang iyong sertipiko. Pangalan at Taon ng Pagtatapos lamang ang aming itatabi para sa mga susunod na pagpapatunay."
+    },
+    privacy: {
+      title: isEnglish ? "Privacy Consent" : "Pahintulot sa Pagkapribado",
+      auth: isEnglish
+        ? "By proceeding, you authorize the RMMO Advisory Council to collect and process the following information:"
+        : "Sa pagpapatuloy, binibigyan mo ng pahintulot ang RMMO Advisory Council na kolektahin at iproseso ang mga sumusunod na impormasyon:",
+      handle: isEnglish ? "How we handle your information:" : "Paano namin pinangangalagaan ang iyong impormasyon:",
+      agree: isEnglish
+        ? "I agree to the terms of data collection and understand how my information will be processed and stored."
+        : "Sumasang-ayon ako sa mga tuntunin ng koleksyon ng data at nauunawaan ko kung paano ipoproseso at itatabi ang aking impormasyon."
+    },
+    review: {
+      certify: isEnglish
+        ? "I CERTIFY that all information provided is true and correct. I understand the terms of application."
+        : "PINATUTUNAYAN KO na ang lahat ng impormasyong ibinigay ay totoo at tama. Nauunawaan ko ang mga tuntunin ng aplikasyon."
+    }
+  };
+
+  const inputClass = "w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none font-bold text-slate-900";
+  const labelClass = "block text-[11px] font-black text-slate-500 uppercase tracking-wider mb-2 ml-1";
+  const requiredStar = <span className="text-red-500 ml-1">*</span>;
+
+  const handleStart = () => setHasStarted(true);
+  const handleGoToPrivacy = () => setShowPrivacy(true);
+  const nextStep = () => setCurrentStep(prev => prev + 1);
+  const prevStep = () => setCurrentStep(prev => prev - 1);
+  const formatDate = (date) => date || "---";
+  const handleOpenConfirm = () => alert(isEnglish ? "Confirm Submission?" : "Kumpirmahin ang Pagpasa?");
+
+  return (
+    <div className="min-h-screen bg-slate-50 py-10">
       <main className="max-w-6xl mx-auto px-4">
         
+        {/* LANGUAGE TOGGLE */}
+        <div className="flex justify-end mb-6">
+          <div className="bg-white p-1 rounded-2xl shadow-sm border border-slate-200 flex gap-1">
+            <button 
+              onClick={() => setIsEnglish(false)}
+              className={`px-6 py-2 rounded-xl text-[12px] font-black transition-all ${!isEnglish ? 'bg-blue-700 text-white shadow-md' : 'text-slate-400 hover:bg-slate-50'}`}
+            >
+              TAGALOG
+            </button>
+            <button 
+              onClick={() => setIsEnglish(true)}
+              className={`px-6 py-2 rounded-xl text-[12px] font-black transition-all ${isEnglish ? 'bg-blue-700 text-white shadow-md' : 'text-slate-400 hover:bg-slate-50'}`}
+            >
+              ENGLISH
+            </button>
+          </div>
+        </div>
+
         {/* SCREEN 1: INTRODUCTION */}
         {!hasStarted && !showPrivacy && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
             <div className="bg-white rounded-[24px] p-6 md:p-10 border border-slate-100 shadow-sm">
-              <h2 className="text-xl font-black text-slate-900 mb-4 uppercase tracking-tighter">Introduction</h2>
+              <h2 className="text-xl font-black text-slate-900 mb-4 uppercase tracking-tighter">{content.intro.title}</h2>
               <div className="space-y-4 text-slate-600 leading-relaxed text-[14px] font-bold">
-                <p>
-                  This application form collects basic information regarding your training and completion journey at the Roxasian Moments Multimedia Organization (RMMO). We are committed to protecting your data privacy; the information provided will be used solely to record, verify, and certify your credentials to facilitate the issuance of your Certificate of Completion.
+                <p>{content.intro.p1}</p>
+                <p className="text-red-600 bg-red-50 p-4 rounded-xl border-l-4 border-red-600">
+                  {content.intro.reminder}
                 </p>
                 <div className="bg-blue-50 p-5 rounded-xl border-l-4 border-blue-700">
-                  <p className="text-blue-900 font-bold italic text-[13px]">
-                    Note: Most of your data is deleted once your certificate is released. We only keep your Name and Graduation Year for future verification.
-                  </p>
+                  <p className="text-blue-900 font-bold italic text-[13px]">{content.intro.note}</p>
                 </div>
               </div>
 
-              <button 
-                onClick={handleGoToPrivacy} 
-                className="cursor-pointer mt-8 w-full py-4 bg-blue-700 text-white rounded-[20px] font-bold text-lg hover:bg-blue-800 transition-all"
-              >
+              <button onClick={handleGoToPrivacy} className="cursor-pointer mt-8 w-full py-4 bg-blue-700 text-white rounded-[20px] font-bold text-lg hover:bg-blue-800 transition-all">
                 GET STARTED
               </button>
             </div>
@@ -282,12 +340,10 @@ if (submitted) {
         {!hasStarted && showPrivacy && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
             <div className="bg-white rounded-[24px] p-6 md:p-10 border border-slate-100 shadow-sm">
-              <h2 className="text-xl font-black text-slate-900 mb-4 uppercase tracking-tighter">Privacy Consent</h2>
+              <h2 className="text-xl font-black text-slate-900 mb-4 uppercase tracking-tighter">{content.privacy.title}</h2>
               <div className="space-y-4 text-slate-700 leading-relaxed font-bold text-[14px]">
                 <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200">
-                  <div className="mb-4">
-                    By proceeding, you authorize the <b>RMMO Advisory Council</b> to collect and process the following information:
-                  </div>
+                  <div className="mb-4">{content.privacy.auth}</div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
                     <div className="bg-white p-3.5 rounded-xl border border-slate-100 shadow-sm">
@@ -304,40 +360,39 @@ if (submitted) {
                     </div>
                   </div>
 
-                  <p className="mb-3 text-slate-900 font-bold">How we handle your information:</p>
+                  <p className="mb-3 text-slate-900 font-bold">{content.privacy.handle}</p>
                   <div className="text-slate-600 space-y-1.5 text-[13px]">
                     <ul className="list-disc ml-5 space-y-1.5">
-                      <li className="list-item"><b>Reviewing your form:</b> We will save your full details for a short time so the <b>RMMO Advisory Council</b> can check your information and generate your certificate.</li>
-                      <li className="list-item"><b>Generating your certificate:</b> Once we confirm everything is correct, we will release your official Certificate of Completion.</li>
-                      <li className="list-item"><b>Deleting private info:</b> Once your certificate is released, we will <b>delete</b> your private details (like your email and birthday) from our main records.</li>
-                      <li className="list-item"><b>What we keep:</b> We will only keep your <b>Name and Graduation Year</b> in our verification system in this portal.</li>
+                      {isEnglish ? (
+                        <>
+                          <li><b>Reviewing your form:</b> We will save your full details for a short time so the <b>RMMO Advisory Council</b> can check your information and generate your certificate.</li>
+                          <li><b>Generating your certificate:</b> Once we confirm everything is correct, we will release your official Certificate of Completion.</li>
+                          <li><b>Deleting private info:</b> Once your certificate is released, we will <b>delete</b> your private details (like your email and birthday) from our main records.</li>
+                          <li><b>What we keep:</b> We will only keep your <b>Name and Graduation Year</b> in our verification system.</li>
+                        </>
+                      ) : (
+                        <>
+                          <li><b>Pagsusuri ng form:</b> Itatabi namin ang iyong detalye sa panandaliang panahon upang masuri ng <b>RMMO Advisory Council</b> at magawa ang iyong sertipiko.</li>
+                          <li><b>Pagbuo ng sertipiko:</b> Kapag nakumpirma na ang lahat, ilalabas namin ang iyong opisyal na Certificate of Completion.</li>
+                          <li><b>Pagbura ng pribadong info:</b> Pagkatapos mailabas ang sertipiko, <b>buburahin</b> namin ang iyong pribadong detalye (email at kaarawan) sa aming main records.</li>
+                          <li><b>Ano ang aming itatabi:</b> <b>Pangalan at Taon ng Pagtatapos</b> lamang ang mananatili sa aming verification system.</li>
+                        </>
+                      )}
                     </ul>
                   </div>
                 </div>
               </div>
               
               <div className="mt-6 p-5 bg-blue-50 rounded-xl border-2 border-blue-200 flex items-start gap-3">
-                <input 
-                  type="checkbox" 
-                  id="privacyCheck" 
-                  className="cursor-pointer mt-1 w-5 h-5 accent-blue-700" 
-                  checked={privacyAgreed} 
-                  onChange={(e) => setPrivacyAgreed(e.target.checked)} 
-                />
+                <input type="checkbox" id="privacyCheck" className="cursor-pointer mt-1 w-5 h-5 accent-blue-700" checked={privacyAgreed} onChange={(e) => setPrivacyAgreed(e.target.checked)} />
                 <label htmlFor="privacyCheck" className="cursor-pointer text-[13px] text-slate-900 font-bold leading-relaxed select-none">
-                  I agree to the terms of data collection and understand how my information will be processed and stored.
+                  {content.privacy.agree}
                 </label>
               </div>
 
-              <div className="flex gap-3">
-                <button 
-                  disabled={!privacyAgreed}
-                  onClick={handleStart} 
-                  className="cursor-pointer mt-8 flex-[2] py-4 bg-blue-700 text-white rounded-[20px] font-bold text-lg hover:bg-blue-800 transition-all disabled:opacity-40"
-                >
-                  NEXT
-                </button>
-              </div>
+              <button disabled={!privacyAgreed} onClick={handleStart} className="cursor-pointer mt-8 w-full py-4 bg-blue-700 text-white rounded-[20px] font-bold text-lg hover:bg-blue-800 transition-all disabled:opacity-40">
+                NEXT
+              </button>
             </div>
           </div>
         )}
@@ -345,129 +400,78 @@ if (submitted) {
         {/* STEPPER FORM */}
         {hasStarted && (
           <>
-            <StepTracker currentStep={currentStep} />
-            
+            {/* Step 1: Personal Info */}
             {currentStep === 1 && (
-             <form onSubmit={(e) => { e.preventDefault(); nextStep(); }} className="space-y-6 animate-in fade-in slide-in-from-right-4">
-  <section className="bg-white rounded-[24px] p-6 md:p-10 border border-slate-100 shadow-sm">
-    <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-3">
-      <span className="w-1 h-6 bg-blue-700 rounded-full"></span> 
-      Personal Information <span className="text-slate-400 font-normal text-sm">(Impormasyong Personal)</span>
-    </h2>
-    
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-      {/* Given Name */}
-      <div className="md:col-span-5">
-        <label className={labelClass}>
-          Given Name{requiredStar} <span className="text-[10px] text-slate-400 font-normal">(Mga Pangalan)</span>
-        </label>
-        <input required className={inputClass} value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value.toUpperCase()})} />
-      </div>
+              <form onSubmit={(e) => { e.preventDefault(); nextStep(); }} className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                <section className="bg-white rounded-[24px] p-6 md:p-10 border border-slate-100 shadow-sm">
+                  <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-3">
+                    <span className="w-1 h-6 bg-blue-700 rounded-full"></span> 
+                    Personal Information <span className="text-slate-400 font-normal text-sm">(Impormasyong Personal)</span>
+                  </h2>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                    <div className="md:col-span-4">
+                      <label className={labelClass}>Given Name{requiredStar} <span className="text-[10px] text-slate-400 font-normal">(Mga Pangalan)</span></label>
+                      <input required className={inputClass} value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value.toUpperCase()})} />
+                    </div>
 
-      {/* Middle Initial Block */}
-      <div className="md:col-span-2">
-        <label className={labelClass}>
-          M.I. <span className="text-[10px] text-slate-400 font-normal">(G.P.)</span>
-        </label>
-        <input 
-          maxLength={2} 
-          className={`${inputClass} ${!formData.middleName && "placeholder:font-normal"}`} 
-          value={formData.middleName} 
-          disabled={formData.noMiddleName} 
-          placeholder={formData.noMiddleName ? "N/A" : ""}
-          onChange={e => setFormData({...formData, middleName: e.target.value.toUpperCase()})} 
-        />
-        <div className="flex items-center gap-2 mt-2 ml-1">
-          <input 
-            type="checkbox" 
-            id="nomiddle" 
-            checked={formData.noMiddleName} 
-            onChange={(e) => {
-              setFormData({
-                ...formData, 
-                noMiddleName: e.target.checked,
-                middleName: e.target.checked ? "" : formData.middleName
-              });
-            }} 
-            className="cursor-pointer w-4 h-4 accent-blue-700" 
-          />
-          <label htmlFor="nomiddle" className="cursor-pointer text-[9px] leading-tight font-black text-slate-500 uppercase">
-            No Middle Initial <br/> <span className="text-slate-400 font-medium">(Walang Gitnang Inisyal)</span>
-          </label>
-        </div>
-      </div>
+                    <div className="md:col-span-2">
+                      <label className={labelClass}>M.I. <span className="text-[10px] text-slate-400 font-normal">(G.P.)</span></label>
+                      <input maxLength={2} className={`${inputClass} ${!formData.middleName && "placeholder:font-normal"}`} value={formData.middleName} disabled={formData.noMiddleName} placeholder={formData.noMiddleName ? "N/A" : ""} onChange={e => setFormData({...formData, middleName: e.target.value.toUpperCase()})} />
+                      <div className="flex items-center gap-2 mt-2 ml-1">
+                        <input type="checkbox" id="nomiddle" checked={formData.noMiddleName} onChange={(e) => setFormData({...formData, noMiddleName: e.target.checked, middleName: e.target.checked ? "" : formData.middleName})} className="cursor-pointer w-4 h-4 accent-blue-700" />
+                        <label htmlFor="nomiddle" className="cursor-pointer text-[9px] leading-tight font-black text-slate-500 uppercase">No M.I. <br/> <span className="text-slate-400 font-medium">(Walang Gitna)</span></label>
+                      </div>
+                    </div>
 
-      {/* Surname */}
-      <div className="md:col-span-5">
-        <label className={labelClass}>
-          Surname{requiredStar} <span className="text-[10px] text-slate-400 font-normal">(Apelyido)</span>
-        </label>
-        <input required className={inputClass} value={formData.surname} onChange={e => setFormData({...formData, surname: e.target.value.toUpperCase()})} />
-      </div>
+                    <div className="md:col-span-4">
+                      <label className={labelClass}>Surname{requiredStar} <span className="text-[10px] text-slate-400 font-normal">(Apelyido)</span></label>
+                      <input required className={inputClass} value={formData.surname} onChange={e => setFormData({...formData, surname: e.target.value.toUpperCase()})} />
+                    </div>
 
-      {/* Suffix */}
-      <div className="md:col-span-3">
-        <label className={labelClass}>Suffix</label>
-        <select 
-          disabled={noSuffix} 
-          className={`${inputClass} disabled:opacity-30`} 
-          value={formData.suffix} 
-          onChange={e => setFormData({...formData, suffix: e.target.value})}
-        >
-          <option value=""></option>
-          <option value="JR">JR</option>
-          <option value="III">III</option>
-          <option value="IV">IV</option>
-          <option value="V">V</option>
-          <option value="SR">SR</option>
-        </select>
-        <div className="flex items-center gap-2 mt-2 ml-1">
-          <input 
-            type="checkbox" 
-            id="nosuffix" 
-            checked={noSuffix} 
-            onChange={(e) => {
-              setNoSuffix(e.target.checked); 
-              if(e.target.checked) setFormData({...formData, suffix: ""})
-            }} 
-            className="cursor-pointer w-4 h-4 accent-blue-700" 
-          />
-          <label htmlFor="nosuffix" className="cursor-pointer text-[9px] leading-tight font-black text-slate-500 uppercase">
-            No Suffix <br/> <span className="text-slate-400 font-medium">(Walang Karugtong)</span>
-          </label>
-        </div>
-      </div>
+                    {/* Suffix Beside Surname */}
+                    <div className="md:col-span-2">
+                      <label className={labelClass}>Suffix</label>
+                      <select disabled={noSuffix} className={`${inputClass} disabled:opacity-30`} value={formData.suffix} onChange={e => setFormData({...formData, suffix: e.target.value})}>
+                        <option value=""></option>
+                        <option value="JR">JR</option>
+                        <option value="III">III</option>
+                        <option value="IV">IV</option>
+                        <option value="V">V</option>
+                        <option value="SR">SR</option>
+                      </select>
+                      <div className="flex items-center gap-2 mt-2 ml-1">
+                        <input type="checkbox" id="nosuffix" checked={noSuffix} onChange={(e) => { setNoSuffix(e.target.checked); if(e.target.checked) setFormData({...formData, suffix: ""}) }} className="cursor-pointer w-4 h-4 accent-blue-700" />
+                        <label htmlFor="nosuffix" className="cursor-pointer text-[9px] leading-tight font-black text-slate-500 uppercase">No Suffix <br/> <span className="text-slate-400 font-medium">(Walang Karugtong)</span></label>
+                      </div>
+                    </div>
 
-      <div className="md:col-span-3">
-        <label className={labelClass}>Pronouns{requiredStar}</label>
-        <select required className={`${inputClass} cursor-pointer`} value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})}>
-          <option value="HIM">HIM</option>
-          <option value="HER">HER</option>
-          <option value="PREFER NOT TO SAY">PREFER NOT TO SAY</option>
-        </select>
-      </div>
+                    <div className="md:col-span-6">
+                      <label className={labelClass}>Pronouns{requiredStar}</label>
+                      <select required className={`${inputClass} cursor-pointer`} value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})}>
+                        <option value="HIM">HIM</option>
+                        <option value="HER">HER</option>
+                        <option value="PREFER NOT TO SAY">PREFER NOT TO SAY</option>
+                      </select>
+                    </div>
 
-      <div className="md:col-span-3">
-        <label className={labelClass}>Date of Birth{requiredStar}</label>
-        <input 
-          type="date" 
-          required 
-          className={`${inputClass} cursor-pointer`} 
-          value={formData.birthday}
-          onChange={e => setFormData({...formData, birthday: e.target.value})} 
-        />
-      </div>
+                    <div className="md:col-span-6">
+                      <label className={labelClass}>Date of Birth{requiredStar}</label>
+                      <input type="date" required className={`${inputClass} cursor-pointer`} value={formData.birthday} onChange={e => setFormData({...formData, birthday: e.target.value})} />
+                    </div>
 
-      <div className="md:col-span-3">
-        <label className={labelClass}>Email Address{requiredStar}</label>
-        <input type="email" required className={inputClass} value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
-      </div>
-    </div>
-  </section>
-  <button type="submit" className="cursor-pointer w-full bg-blue-700 text-white py-4 rounded-[20px] font-bold text-lg shadow-lg hover:bg-blue-800 transition-all">NEXT</button>
-</form>
+                    {/* Email - Full Width */}
+                    <div className="md:col-span-12">
+                      <label className={labelClass}>Email Address{requiredStar}</label>
+                      <input type="email" required className={inputClass} value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+                    </div>
+                  </div>
+                </section>
+                <button type="submit" className="w-full bg-blue-700 text-white py-4 rounded-[20px] font-bold text-lg hover:bg-blue-800 transition-all">NEXT</button>
+              </form>
             )}
 
+            {/* Step 2: Academic */}
             {currentStep === 2 && (
               <form onSubmit={(e) => { e.preventDefault(); nextStep(); }} className="space-y-6 animate-in fade-in slide-in-from-right-4">
                 <section className="bg-white rounded-[24px] p-6 md:p-10 border border-slate-100 shadow-sm">
@@ -485,12 +489,7 @@ if (submitted) {
                     </div>
                     <div>
                       <label className={labelClass}>School Year{requiredStar}</label>
-                      <select 
-                        required 
-                        className={inputClass} 
-                        value={formData.schoolYearGraduation} 
-                        onChange={e => setFormData({...formData, schoolYearGraduation: e.target.value})}
-                      >
+                      <select required className={inputClass} value={formData.schoolYearGraduation} onChange={e => setFormData({...formData, schoolYearGraduation: e.target.value})}>
                         <option value="">Select School Year</option>
                         <option value="2025-2026">2025-2026</option>
                       </select>
@@ -498,111 +497,60 @@ if (submitted) {
                   </div>
                 </section>
                 <div className="flex gap-3">
-                  <button type="button" onClick={prevStep} className="cursor-pointer flex-1 py-4 bg-white text-slate-500 border border-slate-200 rounded-[20px] font-bold text-lg">BACK</button>
-                  <button type="submit" className="cursor-pointer flex-[2] bg-blue-700 text-white py-4 rounded-[20px] font-bold text-lg shadow-lg hover:bg-blue-800 transition-all">NEXT</button>
+                  <button type="button" onClick={prevStep} className="flex-1 py-4 bg-white text-slate-500 border border-slate-200 rounded-[20px] font-bold text-lg">BACK</button>
+                  <button type="submit" className="flex-[2] bg-blue-700 text-white py-4 rounded-[20px] font-bold text-lg hover:bg-blue-800 transition-all">NEXT</button>
                 </div>
               </form>
             )}
 
+            {/* Step 3: Service History */}
             {currentStep === 3 && (
               <form onSubmit={(e) => { e.preventDefault(); nextStep(); }} className="space-y-6 animate-in fade-in slide-in-from-right-4">
                 <section className="bg-white rounded-[24px] p-6 md:p-10 border border-slate-100 shadow-sm">
                   <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-3"><span className="w-1 h-6 bg-emerald-500 rounded-full"></span> RMMO Service History</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div><label className={labelClass}>Service Started{requiredStar}</label><input type="date" required className={`${inputClass} cursor-pointer`} value={formData.dateStarted} onChange={e => setFormData({...formData, dateStarted: e.target.value})} /></div>
-                    <div><label className={labelClass}>Service Ended{requiredStar}</label><input type="date" required className={`${inputClass} cursor-pointer`} value={formData.dateEnded}  onChange={e => setFormData({...formData, dateEnded: e.target.value})} /></div>
+                    <div><label className={labelClass}>Service Ended{requiredStar}</label><input type="date" required className={`${inputClass} cursor-pointer`} value={formData.dateEnded} onChange={e => setFormData({...formData, dateEnded: e.target.value})} /></div>
                     <div className="md:col-span-2">
                       <label className={labelClass}>Position Title or Role and Committee Held{requiredStar}</label>
-                      <input 
-                        required 
-                        placeholder="e.g. Chairman, TECHNICAL WORKING GROUP COMMITTEE" 
-                        className={inputClass} 
-                        value={formData.positionAssigned} 
-                        onChange={e => setFormData({...formData, positionAssigned: e.target.value.toUpperCase()})} 
-                      />
+                      <input required placeholder="e.g. Chairman, TECHNICAL WORKING GROUP COMMITTEE" className={inputClass} value={formData.positionAssigned} onChange={e => setFormData({...formData, positionAssigned: e.target.value.toUpperCase()})} />
                     </div>
                   </div>
                 </section>
                 <div className="flex gap-3">
-                  <button type="button" onClick={prevStep} className="cursor-pointer flex-1 py-4 bg-white text-slate-500 border border-slate-200 rounded-[20px] font-bold text-lg">BACK</button>
-                  <button type="submit" className="cursor-pointer flex-[2] bg-blue-700 text-white py-4 rounded-[20px] font-bold text-lg shadow-lg hover:bg-blue-800 transition-all">REVIEW DETAILS</button>
+                  <button type="button" onClick={prevStep} className="flex-1 py-4 bg-white text-slate-500 border border-slate-200 rounded-[20px] font-bold text-lg">BACK</button>
+                  <button type="submit" className="flex-[2] bg-blue-700 text-white py-4 rounded-[20px] font-bold text-lg hover:bg-blue-800 transition-all">REVIEW DETAILS</button>
                 </div>
               </form>
             )}
 
+            {/* Step 4: Final Review */}
             {currentStep === 4 && (
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
                 <div className="bg-white rounded-[24px] p-6 md:p-10 border-2 border-blue-100 shadow-sm">
                   <h2 className="text-xl font-black text-slate-900 mb-1">Review Application</h2>
                   <p className="text-slate-500 mb-5 font-bold text-[13px]">Please double-check all your information before final certification.</p>
                   
-                  <div className="space-y-8">
-                    <div>
-                      <h3 className="text-[11px] font-black text-blue-700 uppercase tracking-widest mb-3 border-b pb-1.5">Personal Details</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div className="flex flex-col">
-                          <span className="text-[10px] text-slate-400 font-bold uppercase">Full Name</span>
-                          <span className="font-bold text-slate-900 text-[14px]">{formData.firstName} {formData.middleName} {formData.surname} {noSuffix ? "" : formData.suffix}</span>
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-[10px] text-slate-400 font-bold uppercase">Pronouns</span>
-                          <span className="font-bold text-slate-900 text-[14px]">{formData.gender}</span>
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-[10px] text-slate-400 font-bold uppercase">Date of Birth</span>
-                          <span className="font-bold text-slate-900 text-[14px]">{formatDate(formData.birthday)}</span>
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-[10px] text-slate-400 font-bold uppercase">Email Address</span>
-                          <span className="font-bold text-slate-900 text-[14px]">{formData.email}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="text-[11px] font-black text-amber-600 uppercase tracking-widest mb-3 border-b pb-1.5">Academic Records</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="flex flex-col">
-                          <span className="text-[10px] text-slate-400 font-bold uppercase">Grade & Section</span>
-                          <span className="font-bold text-slate-900 text-[14px]">{formData.gradeLevelSection}</span>
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-[10px] text-slate-400 font-bold uppercase">Academic Strand</span>
-                          <span className="font-bold text-slate-900 text-[14px]">{formData.strand}</span>
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-[10px] text-slate-400 font-bold uppercase">School Year</span>
-                          <span className="font-bold text-slate-900 text-[14px]">{formData.schoolYearGraduation}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="text-[11px] font-black text-emerald-600 uppercase tracking-widest mb-3 border-b pb-1.5">RMMO Service History</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="flex flex-col">
-                          <span className="text-[10px] text-slate-400 font-bold uppercase">Service Period</span>
-                          <span className="font-bold text-slate-900 text-[14px]">{formatDate(formData.dateStarted)} to {formatDate(formData.dateEnded)}</span>
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-[10px] text-slate-400 font-bold uppercase">Position & Committee</span>
-                          <span className="font-bold text-slate-900 text-[14px]">{formData.positionAssigned}</span>
-                        </div>
-                      </div>
+                  <div className="space-y-8 text-[14px]">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div><span className={labelClass}>Full Name</span><p className="font-bold">{formData.firstName} {formData.middleName} {formData.surname} {formData.suffix}</p></div>
+                      <div><span className={labelClass}>Email Address</span><p className="font-bold">{formData.email}</p></div>
+                      <div><span className={labelClass}>Grade & Section</span><p className="font-bold">{formData.gradeLevelSection} ({formData.strand})</p></div>
+                      <div><span className={labelClass}>Service Position</span><p className="font-bold">{formData.positionAssigned}</p></div>
                     </div>
                   </div>
                 </div>
 
                 <div className="p-6 bg-[#EEF1F9] rounded-[20px] border-2 border-blue-200 flex items-start gap-3">
                   <input type="checkbox" id="certify" className="cursor-pointer mt-1 w-5 h-5 accent-blue-700" checked={isAgreed} onChange={(e) => setIsAgreed(e.target.checked)} />
-                  <label htmlFor="certify" className="cursor-pointer text-[13px] text-slate-900 font-bold leading-relaxed select-none">
-                    I CERTIFY that all information provided is true and correct. I understand the terms of application.
+                  <label htmlFor="certify" className="cursor-pointer text-[13px] text-slate-900 font-bold leading-relaxed">
+                    {content.review.certify}
                   </label>
                 </div>
 
                 <div className="flex flex-col md:flex-row gap-3">
-                  <button onClick={prevStep} className="cursor-pointer flex-1 py-4 bg-white text-slate-500 border border-slate-200 rounded-[20px] font-bold text-lg hover:bg-slate-50 transition-all">BACK TO EDIT</button>
-                  <button disabled={!isAgreed || loading} onClick={handleOpenConfirm} className="cursor-pointer flex-[2] bg-blue-700 text-white py-4 rounded-[20px] font-bold text-lg shadow-lg hover:bg-blue-800 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                  <button onClick={prevStep} className="flex-1 py-4 bg-white text-slate-500 border border-slate-200 rounded-[20px] font-bold text-lg">BACK TO EDIT</button>
+                  <button disabled={!isAgreed || loading} onClick={handleOpenConfirm} className="flex-[2] bg-blue-700 text-white py-4 rounded-[20px] font-bold text-lg hover:bg-blue-800 transition-all disabled:opacity-40">
                     {loading ? "PROCESSING..." : "SUBMIT APPLICATION"}
                   </button>
                 </div>
