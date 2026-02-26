@@ -150,8 +150,8 @@ export default function GradApplicantsPage() {
 
   const StepTracker = ({ currentStep = 1 }) => {
     const steps = isEnglish 
-      ? ["Personal Data", "Academic Records", "RMMO Service History"]
-      : ["Personal na Data", "Akademikong Record", "Kasaysayan sa RMMO"];
+      ? ["Personal Data", "Academic Records", "Service History"]
+      : ["Personal Data", "Academic Records", "Service History"];
 
     return (
       <div className="w-full max-w-[360px] mx-auto mb-20 px-2">
@@ -256,18 +256,18 @@ export default function GradApplicantsPage() {
                     ? "This application form collects basic information regarding your training and completion journey at the Roxasian Moments Multimedia Organization (RMMO). We are committed to protecting your data privacy; the information provided will be used solely to record, verify, and certify your credentials to facilitate the issuance of your Certificate of Completion."
                     : "Ang application form na ito ay nangongolekta ng pangunahing impormasyon tungkol sa iyong training at completion journey sa Roxasian Moments Multimedia Organization (RMMO). Kami ay nakatuon sa pagprotekta ng iyong data privacy; ang impormasyong ibibigay ay gagamitin lamang sa pagtatala, pag-verify, at pagpapatunay ng iyong mga kredensyal para sa pag-isyu ng iyong Certificate of Completion."}
                 </p>
+                <div className="bg-blue-50 p-5 rounded-xl border-l-4 border-blue-700">
+                  <p className="text-blue-900 font-bold italic text-[13px]">
+                    {isEnglish 
+                      ? "Note: Most of your data will be deleted once your certificate is released. We only keep your Name and Graduation Year for future verification."
+                      : "Paunawa: Ang iyong data ay buburahin kapag naibigay na ang iyong Certificate of Completion. Pananatilihin lamang namin ang iyong Pangalan at Taon ng Pagtatapos para sa verification system ng portal na ito."}
+                  </p>
+                </div>
                 <p className="text-red-600">
                   {isEnglish 
                     ? "Reminder: Avoid double submission to prevent double records."
                     : "Paalala: Iwasan ang magdoble ng pagpasa ng Application Form. Para hindi magdoble ang records."}
-                </p>
-                <div className="bg-blue-50 p-5 rounded-xl border-l-4 border-blue-700">
-                  <p className="text-blue-900 font-bold italic text-[13px]">
-                    {isEnglish 
-                      ? "Note: Most of your data is deleted once your certificate is released. We only keep your Name and Graduation Year for future verification."
-                      : "Paunawa: Karamihan sa iyong data ay binubura kapag naibigay na ang iyong sertipiko. Itinatabi lamang namin ang iyong Pangalan at Taon ng Pagtatapos para sa verification sa hinaharap."}
-                  </p>
-                </div>
+                </p>                
               </div>
               <button onClick={handleGoToPrivacy} className="cursor-pointer mt-8 w-full py-4 bg-blue-700 text-white rounded-[20px] font-bold text-lg hover:bg-blue-800 transition-all">
                 GET STARTED
@@ -315,10 +315,10 @@ export default function GradApplicantsPage() {
                         </>
                       ) : (
                         <>
-                          <li><b>Pagsusuri ng iyong form:</b> Itatabi namin ang iyong buong detalye sa maikling panahon upang masuri ng <b>RMMO Advisory Council</b> ang iyong impormasyon at makagawa ng sertipiko.</li>
+                          <li><b>Pagsusuri ng iyong form:</b> Panandalian naming ise-save ang iyong mga personal information upang masuri ng <b>RMMO Advisory Council</b> ang iyong impormasyon bago makagawa ng sertipiko.</li>
                           <li><b>Pagbuo ng iyong sertipiko:</b> Kapag nakumpirma na ang lahat ay tama, ilalabas namin ang iyong opisyal na Certificate of Completion.</li>
-                          <li><b>Pagbura ng pribadong info:</b> Kapag nailabas na ang sertipiko, aming <b>buburahin</b> ang iyong mga pribadong detalye (tulad ng email at kaarawan) mula sa aming main records.</li>
-                          <li><b>Ano ang aming itinatabi:</b> Ang iyong <b>Pangalan at Taon ng Pagtatapos</b> lamang ang itatabi sa aming verification system sa portal na ito.</li>
+                          <li><b>Pagbura ng pribadong info:</b> Kapag nailabas na ang Certificates, aming <b>buburahin</b> ang iyong mga private details (tulad ng email at kaarawan) mula sa aming main records.</li>
+                          <li><b>Mga details na pananatilihin:</b> Ang iyong <b>Pangalan at Taon ng Pagtatapos</b> lamang ang aming pananatilihin para sa verification system ng portal na ito.</li>
                         </>
                       )}
                     </ul>
@@ -346,10 +346,10 @@ export default function GradApplicantsPage() {
             {currentStep === 1 && (
               <form onSubmit={(e) => { e.preventDefault(); nextStep(); }} className="space-y-6 animate-in fade-in slide-in-from-right-4">
                 <section className="bg-white rounded-[24px] p-6 md:p-10 border border-slate-100 shadow-sm">
-                  <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-3"><span className="w-1 h-6 bg-blue-700 rounded-full"></span> Personal Information <span className="text-slate-400 font-normal text-sm">(Impormasyong Personal)</span></h2>
+                  <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-3"><span className="w-1 h-6 bg-blue-700 rounded-full"></span> Personal Information</h2>
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                     <div className="md:col-span-4">
-                      <label className={labelClass}>Given Name{requiredStar} <span className="text-[10px] text-slate-400 font-normal">(Mga Pangalan)</span></label>
+                      <label className={labelClass}>Given Names{requiredStar} <span className="text-[10px] text-slate-400 font-normal">(Mga Pangalan)</span></label>
                       <input required className={inputClass} value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value.toUpperCase()})} />
                     </div>
                     <div className="md:col-span-2">
@@ -443,8 +443,8 @@ export default function GradApplicantsPage() {
             {currentStep === 4 && (
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
                 <div className="bg-white rounded-[24px] p-6 md:p-10 border-2 border-blue-100 shadow-sm">
-                  <h2 className="text-xl font-black text-slate-900 mb-1">{isEnglish ? "Review Application" : "Repasuhin ang Application"}</h2>
-                  <p className="text-slate-500 mb-5 font-bold text-[13px]">{isEnglish ? "Please double-check all your information before final certification." : "Pakisuyong suriing mabuti ang iyong impormasyon bago ang huling sertipikasyon."}</p>
+                  <h2 className="text-xl font-black text-slate-900 mb-1">{isEnglish ? "Review Application" : "Review Application"}</h2>
+                  <p className="text-slate-500 mb-5 font-bold text-[13px]">{isEnglish ? "Please double-check all your information before submitting." : "Suriin nang mabuti ang iyong impormasyon bago ang ipasa."}</p>
                   <div className="space-y-8">
                     <div>
                       <h3 className="text-[11px] font-black text-blue-700 uppercase tracking-widest mb-3 border-b pb-1.5">Personal Details</h3>
