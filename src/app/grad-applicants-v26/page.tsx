@@ -250,7 +250,7 @@ if (submitted) {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4">
+      <main className="max-w-6xl mx-auto px-4">
         
         {/* SCREEN 1: INTRODUCTION */}
         {!hasStarted && !showPrivacy && (
@@ -349,15 +349,15 @@ if (submitted) {
             
             {currentStep === 1 && (
              <form onSubmit={(e) => { e.preventDefault(); nextStep(); }} className="space-y-6 animate-in fade-in slide-in-from-right-4">
-  <section className="bg-white rounded-[24px] p-6 md:p-8 border border-slate-100 shadow-sm">
+  <section className="bg-white rounded-[24px] p-6 md:p-10 border border-slate-100 shadow-sm">
     <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-3">
       <span className="w-1 h-6 bg-blue-700 rounded-full"></span> 
       Personal Information <span className="text-slate-400 font-normal text-sm">(Impormasyong Personal)</span>
     </h2>
     
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
       {/* Given Name */}
-      <div className="md:col-span-4">
+      <div className="md:col-span-5">
         <label className={labelClass}>
           Given Name{requiredStar} <span className="text-[10px] text-slate-400 font-normal">(Mga Pangalan)</span>
         </label>
@@ -398,7 +398,7 @@ if (submitted) {
       </div>
 
       {/* Surname */}
-      <div className="md:col-span-4">
+      <div className="md:col-span-5">
         <label className={labelClass}>
           Surname{requiredStar} <span className="text-[10px] text-slate-400 font-normal">(Apelyido)</span>
         </label>
@@ -406,7 +406,7 @@ if (submitted) {
       </div>
 
       {/* Suffix */}
-      <div className="md:col-span-2">
+      <div className="md:col-span-3">
         <label className={labelClass}>Suffix</label>
         <select 
           disabled={noSuffix} 
@@ -435,42 +435,44 @@ if (submitted) {
           <label htmlFor="nosuffix" className="cursor-pointer text-[9px] leading-tight font-black text-slate-500 uppercase">
             No Suffix <br/> <span className="text-slate-400 font-medium">(Walang Karugtong)</span>
           </label>
-                        </div>
-                      </div>
+        </div>
+      </div>
 
-                      <div className="md:col-span-4">
-                        <label className={labelClass}>Pronouns{requiredStar}</label>
-                        <select required className={`${inputClass} cursor-pointer`} value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})}>
-                          <option value="HIM">HIM</option>
-                          <option value="HER">HER</option>
-                          <option value="PREFER NOT TO SAY">PREFER NOT TO SAY</option>
-                        </select>
-                      </div>
+      <div className="md:col-span-3">
+        <label className={labelClass}>Pronouns{requiredStar}</label>
+        <select required className={`${inputClass} cursor-pointer`} value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})}>
+          <option value="HIM">HIM</option>
+          <option value="HER">HER</option>
+          <option value="PREFER NOT TO SAY">PREFER NOT TO SAY</option>
+        </select>
+      </div>
 
-                      <div className="md:col-span-4">
-                        <label className={labelClass}>Date of Birth{requiredStar}</label>
-                        <input 
-                        type="date" 
-                        required 
-                        className={`${inputClass} cursor-pointer`} 
-                        value={formData.birthday}
-                        onChange={e => setFormData({...formData, birthday: e.target.value})} 
-                        />
-                      </div>
-                      <div className="md:col-span-4"><label className={labelClass}>Email Address{requiredStar}</label>
-                        <input type="email" required className={inputClass} value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
-                      </div>
-                  </div>
-                </section>
-                <button type="submit" className="cursor-pointer w-full bg-blue-700 text-white py-4 rounded-[20px] font-bold text-lg shadow-lg hover:bg-blue-800 transition-all">NEXT</button>
-              </form>
+      <div className="md:col-span-3">
+        <label className={labelClass}>Date of Birth{requiredStar}</label>
+        <input 
+          type="date" 
+          required 
+          className={`${inputClass} cursor-pointer`} 
+          value={formData.birthday}
+          onChange={e => setFormData({...formData, birthday: e.target.value})} 
+        />
+      </div>
+
+      <div className="md:col-span-3">
+        <label className={labelClass}>Email Address{requiredStar}</label>
+        <input type="email" required className={inputClass} value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+      </div>
+    </div>
+  </section>
+  <button type="submit" className="cursor-pointer w-full bg-blue-700 text-white py-4 rounded-[20px] font-bold text-lg shadow-lg hover:bg-blue-800 transition-all">NEXT</button>
+</form>
             )}
 
             {currentStep === 2 && (
               <form onSubmit={(e) => { e.preventDefault(); nextStep(); }} className="space-y-6 animate-in fade-in slide-in-from-right-4">
-                <section className="bg-white rounded-[24px] p-6 md:p-8 border border-slate-100 shadow-sm">
+                <section className="bg-white rounded-[24px] p-6 md:p-10 border border-slate-100 shadow-sm">
                   <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-3"><span className="w-1 h-6 bg-amber-500 rounded-full"></span> Academic Records</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div><label className={labelClass}>Grade & Section{requiredStar}</label><input required className={inputClass} value={formData.gradeLevelSection} onChange={e => setFormData({...formData, gradeLevelSection: e.target.value.toUpperCase()})} /></div>
                     <div><label className={labelClass}>Academic Strand{requiredStar}</label>
                       <select required className={`${inputClass} cursor-pointer`} value={formData.strand} onChange={e => setFormData({...formData, strand: e.target.value})}>
@@ -481,7 +483,7 @@ if (submitted) {
                         <option>GAS</option>
                       </select>
                     </div>
-                    <div className="md:col-span-2">
+                    <div>
                       <label className={labelClass}>School Year{requiredStar}</label>
                       <select 
                         required 
@@ -504,9 +506,9 @@ if (submitted) {
 
             {currentStep === 3 && (
               <form onSubmit={(e) => { e.preventDefault(); nextStep(); }} className="space-y-6 animate-in fade-in slide-in-from-right-4">
-                <section className="bg-white rounded-[24px] p-6 md:p-8 border border-slate-100 shadow-sm">
+                <section className="bg-white rounded-[24px] p-6 md:p-10 border border-slate-100 shadow-sm">
                   <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-3"><span className="w-1 h-6 bg-emerald-500 rounded-full"></span> RMMO Service History</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div><label className={labelClass}>Service Started{requiredStar}</label><input type="date" required className={`${inputClass} cursor-pointer`} value={formData.dateStarted} onChange={e => setFormData({...formData, dateStarted: e.target.value})} /></div>
                     <div><label className={labelClass}>Service Ended{requiredStar}</label><input type="date" required className={`${inputClass} cursor-pointer`} value={formData.dateEnded}  onChange={e => setFormData({...formData, dateEnded: e.target.value})} /></div>
                     <div className="md:col-span-2">
@@ -530,14 +532,14 @@ if (submitted) {
 
             {currentStep === 4 && (
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-                <div className="bg-white rounded-[24px] p-6 md:p-8 border-2 border-blue-100 shadow-sm">
+                <div className="bg-white rounded-[24px] p-6 md:p-10 border-2 border-blue-100 shadow-sm">
                   <h2 className="text-xl font-black text-slate-900 mb-1">Review Application</h2>
                   <p className="text-slate-500 mb-5 font-bold text-[13px]">Please double-check all your information before final certification.</p>
                   
-                  <div className="space-y-6">
+                  <div className="space-y-8">
                     <div>
                       <h3 className="text-[11px] font-black text-blue-700 uppercase tracking-widest mb-3 border-b pb-1.5">Personal Details</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div className="flex flex-col">
                           <span className="text-[10px] text-slate-400 font-bold uppercase">Full Name</span>
                           <span className="font-bold text-slate-900 text-[14px]">{formData.firstName} {formData.middleName} {formData.surname} {noSuffix ? "" : formData.suffix}</span>
@@ -559,7 +561,7 @@ if (submitted) {
 
                     <div>
                       <h3 className="text-[11px] font-black text-amber-600 uppercase tracking-widest mb-3 border-b pb-1.5">Academic Records</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="flex flex-col">
                           <span className="text-[10px] text-slate-400 font-bold uppercase">Grade & Section</span>
                           <span className="font-bold text-slate-900 text-[14px]">{formData.gradeLevelSection}</span>
@@ -577,12 +579,12 @@ if (submitted) {
 
                     <div>
                       <h3 className="text-[11px] font-black text-emerald-600 uppercase tracking-widest mb-3 border-b pb-1.5">RMMO Service History</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="flex flex-col">
                           <span className="text-[10px] text-slate-400 font-bold uppercase">Service Period</span>
                           <span className="font-bold text-slate-900 text-[14px]">{formatDate(formData.dateStarted)} to {formatDate(formData.dateEnded)}</span>
                         </div>
-                        <div className="md:col-span-2 flex flex-col">
+                        <div className="flex flex-col">
                           <span className="text-[10px] text-slate-400 font-bold uppercase">Position & Committee</span>
                           <span className="font-bold text-slate-900 text-[14px]">{formData.positionAssigned}</span>
                         </div>
