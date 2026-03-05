@@ -9,10 +9,10 @@ const ActionModal = ({ isOpen, title, message, onConfirm, onCancel, confirmText 
   if (!isOpen) return null;
 
   // Modal Translations (English matches your original exactly)
-  const modalTitle = isEnglish ? "You are about to submit your Application" : "Ipapasa mo na ang iyong Application";
+  const modalTitle = isEnglish ? "You are about to submit your Application" : "PAALALA";
   const modalMessage = isEnglish 
     ? message 
-    : `Ang anumang maling impormasyon sa form na ito ay magreresulta sa REJECTION at DISQUALIFY ng iyong Application Form.\n\nBinibigyan namin ng karapatang i-verify ang kawastuhan ng impormasyon, at ang anumang Falsification  ay hahantong sa agarang pagtatanggal sa konsiderasyon.\n\nSa pagsusumite ng form na ito, sumasang-ayon ka sa mga tuntunin at nauunawaan na ang anumang maling representasyon ay maaaring may legal na aksyon.`;
+    : `Ang anumang maling impormasyon sa form na ito ay magreresulta sa REJECTION at DISQUALIFY ang iyong Application Form.\n\nBinibigyan namin ng karapatang i-verify ang kawastuhan ng impormasyon, at ang anumang Falsification  ay hahantong sa agarang pagtatanggal sa konsiderasyon.\n\nSa pagsusumite ng form na ito, sumasang-ayon ka sa mga tuntunin at nauunawaan na ang anumang maling representasyon ay maaaring may legal na aksyon.`;
   const modalConfirm = isEnglish ? confirmText : "Pinatutunayan ko at Ipasa na";
   const modalCancel = isEnglish ? "Back to review" : "Bumalik para i-review ulit";
 
@@ -192,7 +192,7 @@ export default function GradApplicantsPage() {
             </svg>
           </div>
           <h1 className="text-[26px] font-bold text-slate-900 mb-4 tracking-tight">
-            {isEnglish ? "Application Submitted" : "Naipasa na ang Application"}
+            {isEnglish ? "Application Submitted" : "Application Submitted"}
           </h1>
           <div className="space-y-4 mb-10">
             <p className="text-slate-600 font-bold text-[16px]">
@@ -203,8 +203,8 @@ export default function GradApplicantsPage() {
             </p>
             <p className="text-slate-500 font-bold text-[14px] max-w-xs mx-auto">
               {isEnglish 
-                ? "We will notify you once we have verified your information and processed your certificate." 
-                : "Aabisuhan ka namin kapag na-verify na ang iyong impormasyon at naproseso na ang iyong sertipiko."}
+                ? "Please screenshot this Confirmation and send it to RMMO Director or Officers. We will notify you once we have verified your information and processed your certificate." 
+                : "Paki-screenshot ang itong Confirmation Message at i-send sa RMMO Director or Officers. Aabisuhan ka namin kapag na-verify na ang iyong impormasyon at naiproseso na ang iyong sertipiko."}
             </p>
           </div>
           <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row items-center justify-center gap-4 text-center">
@@ -444,7 +444,7 @@ export default function GradApplicantsPage() {
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
                 <div className="bg-white rounded-[24px] p-6 md:p-10 border-2 border-blue-100 shadow-sm">
                   <h2 className="text-xl font-black text-slate-900 mb-1">{isEnglish ? "Review Application" : "Review Application"}</h2>
-                  <p className="text-RED-400 mb-5 font-bold text-[13px]">{isEnglish ? "Please double-check all your information before submitting." : "SURIIN nang MABUTI ang iyong impormasyon BAGO IPASA. Puwedeng bumalik para i-edit ang iyong mga entry."}</p>
+                  <p className="text-RED-400 mb-1 font-bold text-[13px]">{isEnglish ? "Please double-check all your information before submitting." : "SURIIN nang MABUTI ang iyong impormasyon BAGO IPASA. Puwedeng bumalik para i-edit ang iyong mga entry."}</p>
                    <p className="text-red-500 mb-5 font-bold text-[13px]">{isEnglish ? "REMINDER: AVOID DOUBLE SUBMISSIONS FOR YOUR APPLICATION FORM, PLEASE CHECK ALL THE FIELDS BEFORE SUBMITTING THIS FORM." : "PAALALA: IAWASAN ANG MAGPASA NG DOBLENG APPLICATION FORM, PAKI-CHECK NG MABUTI BAGO MAGPASA."}</p>
                   <div className="space-y-8">
                     <div>
